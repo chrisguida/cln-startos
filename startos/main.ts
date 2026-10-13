@@ -1,5 +1,4 @@
 import { FileHelper } from '@start9labs/start-sdk'
-import { manifest as bitcoinManifest } from 'bitcoin-core-startos/startos/manifest'
 import { createHash } from 'node:crypto'
 import { mkdir, readFile, rm, writeFile } from 'fs/promises'
 import {
@@ -16,11 +15,12 @@ import { vpnConfFile } from './fileModels/vpn.conf'
 import { i18n } from './i18n'
 import { sdk } from './sdk'
 import {
-  bitcoinDataDir,
+  bitcoinBackend,
   bitcoindRpcBridge,
   clnrestPort,
   grpcPort,
   mainMounts,
+  mountsWithBitcoin,
   rootDir,
   uiPort,
   wsPort,
@@ -100,13 +100,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
   const lightningSub = sdk.SubContainer.of(
     effects,
     { imageId: 'lightning' },
-    mainMounts.mountDependency<typeof bitcoinManifest>({
-      dependencyId: 'bitcoind',
-      mountpoint: bitcoinDataDir,
-      subpath: null,
-      readonly: true,
-      volumeId: 'main',
-    }),
+    mountsWithBitcoin(await bitcoinBackend(effects)),
     'lightning-sub',
   )
 

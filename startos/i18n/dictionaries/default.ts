@@ -368,6 +368,15 @@ const dict = {
   'The Bitcoin network to run on. It must match the network of the Bitcoin service. Regtest is a private test chain for development: its coins have no value. Each network keeps its own wallet and channels.': 345,
   Mainnet: 346,
   Regtest: 347,
+
+  // Bitcoin backend
+  'BLAKE2b Test Activation Height': 348,
+  'Block height at which the regtest BLAKE2b chain parts from this one. Only the Recovery actions use it. Leave empty if you are not rehearsing a chain recovery.': 349,
+  'Bitcoin Backend': 350,
+  'The Bitcoin service Core Lightning follows. Choose the one whose chain your channels and coins are on, and install it first.\n- Bitcoin: the service with the package id bitcoind.\n- Knots (pre-RDTS): the knots-prerdts service, which stays on the SHA256d chain.': 351,
+  'Core Lightning restarts and follows the other service. Its wallet and channels are only valid on the chain it has followed so far: do not switch a node with funds between chains that have parted. Use the Recovery actions for that.': 352,
+  Bitcoin: 353,
+  'Knots (pre-RDTS)': 354,
 } as const
 
 /**

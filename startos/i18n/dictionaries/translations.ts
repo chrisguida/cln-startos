@@ -334,6 +334,15 @@ export default {
     345: 'La red de Bitcoin en la que operar. Debe coincidir con la red del servicio Bitcoin. Regtest es una cadena de pruebas privada para desarrollo: sus monedas no tienen valor. Cada red mantiene su propia cartera y sus propios canales.',
     346: 'Mainnet',
     347: 'Regtest',
+
+    // Bitcoin backend
+    348: 'Altura de activación de prueba de BLAKE2b',
+    349: 'Altura de bloque en la que la cadena BLAKE2b de regtest se separa de esta. Solo la usan las acciones de Recuperación. Déjelo vacío si no está ensayando una recuperación de cadena.',
+    350: 'Backend de Bitcoin',
+    351: 'El servicio de Bitcoin que sigue Core Lightning. Elija aquel en cuya cadena están sus canales y monedas, e instálelo primero.\n- Bitcoin: el servicio con el id de paquete bitcoind.\n- Knots (pre-RDTS): el servicio knots-prerdts, que permanece en la cadena SHA256d.',
+    352: 'Core Lightning se reinicia y sigue al otro servicio. Su cartera y sus canales solo son válidos en la cadena que ha seguido hasta ahora: no cambie un nodo con fondos entre cadenas que se han separado. Use las acciones de Recuperación para eso.',
+    353: 'Bitcoin',
+    354: 'Knots (pre-RDTS)',
   },
   de_DE: {
     0: 'Core Lightning wird gestartet!',
@@ -668,6 +677,15 @@ export default {
     345: 'Das Bitcoin-Netzwerk, in dem der Knoten läuft. Es muss mit dem Netzwerk des Bitcoin-Dienstes übereinstimmen. Regtest ist eine private Testkette für die Entwicklung: Ihre Coins haben keinen Wert. Jedes Netzwerk hat seine eigene Wallet und seine eigenen Kanäle.',
     346: 'Mainnet',
     347: 'Regtest',
+
+    // Bitcoin backend
+    348: 'BLAKE2b-Testaktivierungshöhe',
+    349: 'Blockhöhe, ab der sich die BLAKE2b-Regtest-Kette von dieser trennt. Nur die Wiederherstellungsaktionen verwenden sie. Leer lassen, wenn Sie keine Kettenwiederherstellung proben.',
+    350: 'Bitcoin-Backend',
+    351: 'Der Bitcoin-Dienst, dem Core Lightning folgt. Wählen Sie den Dienst, auf dessen Kette Ihre Kanäle und Coins liegen, und installieren Sie ihn zuerst.\n- Bitcoin: der Dienst mit der Paket-ID bitcoind.\n- Knots (pre-RDTS): der Dienst knots-prerdts, der auf der SHA256d-Kette bleibt.',
+    352: 'Core Lightning startet neu und folgt dem anderen Dienst. Wallet und Kanäle sind nur auf der bisher verfolgten Kette gültig: Wechseln Sie einen Knoten mit Guthaben nicht zwischen Ketten, die sich getrennt haben. Verwenden Sie dafür die Wiederherstellungsaktionen.',
+    353: 'Bitcoin',
+    354: 'Knots (pre-RDTS)',
   },
   pl_PL: {
     0: 'Uruchamianie Core Lightning!',
@@ -1002,6 +1020,15 @@ export default {
     345: 'Sieć Bitcoin, w której działa węzeł. Musi być zgodna z siecią usługi Bitcoin. Regtest to prywatny łańcuch testowy dla programistów: jego monety nie mają wartości. Każda sieć ma własny portfel i własne kanały.',
     346: 'Mainnet',
     347: 'Regtest',
+
+    // Bitcoin backend
+    348: 'Testowa wysokość aktywacji BLAKE2b',
+    349: 'Wysokość bloku, na której łańcuch BLAKE2b w regtest oddziela się od tego łańcucha. Korzystają z niej tylko akcje odzyskiwania. Pozostaw puste, jeśli nie ćwiczysz odzyskiwania łańcucha.',
+    350: 'Backend Bitcoin',
+    351: 'Usługa Bitcoin, za którą podąża Core Lightning. Wybierz tę, na której łańcuchu znajdują się Twoje kanały i monety, i najpierw ją zainstaluj.\n- Bitcoin: usługa o identyfikatorze pakietu bitcoind.\n- Knots (pre-RDTS): usługa knots-prerdts, która pozostaje na łańcuchu SHA256d.',
+    352: 'Core Lightning uruchomi się ponownie i zacznie podążać za drugą usługą. Jego portfel i kanały są ważne tylko na łańcuchu, za którym podążał do tej pory: nie przełączaj węzła ze środkami między łańcuchami, które się rozdzieliły. Użyj do tego akcji odzyskiwania.',
+    353: 'Bitcoin',
+    354: 'Knots (pre-RDTS)',
   },
   fr_FR: {
     0: 'Démarrage de Core Lightning !',
@@ -1336,5 +1363,14 @@ export default {
     345: "Le réseau Bitcoin sur lequel fonctionner. Il doit correspondre au réseau du service Bitcoin. Regtest est une chaîne de test privée pour le développement : ses pièces n'ont aucune valeur. Chaque réseau conserve son propre portefeuille et ses propres canaux.",
     346: 'Mainnet',
     347: 'Regtest',
+
+    // Bitcoin backend
+    348: "Hauteur d'activation de test de BLAKE2b",
+    349: "Hauteur de bloc à laquelle la chaîne BLAKE2b de regtest se sépare de celle-ci. Seules les actions de récupération l'utilisent. Laissez vide si vous ne répétez pas une récupération de chaîne.",
+    350: 'Backend Bitcoin',
+    351: "Le service Bitcoin que suit Core Lightning. Choisissez celui dont la chaîne porte vos canaux et vos pièces, et installez-le d'abord.\n- Bitcoin : le service dont l'identifiant de paquet est bitcoind.\n- Knots (pre-RDTS) : le service knots-prerdts, qui reste sur la chaîne SHA256d.",
+    352: "Core Lightning redémarre et suit l'autre service. Son portefeuille et ses canaux ne sont valides que sur la chaîne suivie jusqu'ici : ne basculez pas un nœud détenant des fonds entre des chaînes qui se sont séparées. Utilisez pour cela les actions de récupération.",
+    353: 'Bitcoin',
+    354: 'Knots (pre-RDTS)',
   },
 } satisfies Record<string, LangDict>

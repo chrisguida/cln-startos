@@ -1,7 +1,15 @@
 import { FileHelper, z } from '@start9labs/start-sdk'
 import { sdk } from '../sdk'
 
+export const bitcoinBackends = ['bitcoind', 'knots-prerdts'] as const
+export type BitcoinBackend = (typeof bitcoinBackends)[number]
+
 const shape = z.looseObject({
+  // The package id of the Bitcoin service lightningd follows.
+  bitcoinBackend: z.enum(bitcoinBackends).catch('bitcoind'),
+  // Regtest only: where the BLAKE2b test chain parts from this one. Stock
+  // lightningd has no option for it; the Recovery actions read it.
+  blake2bActivationHeight: z.number().optional().catch(undefined),
   rescan: z.number().optional().catch(undefined),
   watchtowerServer: z.boolean().catch(false),
   watchtowerClients: z.array(z.string()).catch([]),
