@@ -362,6 +362,12 @@ const dict = {
   'Revoking the runes failed. Its error output is below.': 341,
   "Reading the watchtower server's status failed. Its error output is below.": 342,
   'Listing the watchtowers failed. Its error output is below.': 343,
+
+  // Network
+  Network: 344,
+  'The Bitcoin network to run on. It must match the network of the Bitcoin service. Regtest is a private test chain for development: its coins have no value. Each network keeps its own wallet and channels.': 345,
+  Mainnet: 346,
+  Regtest: 347,
 } as const
 
 /**

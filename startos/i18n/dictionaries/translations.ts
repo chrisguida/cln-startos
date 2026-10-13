@@ -328,6 +328,12 @@ export default {
     341: 'No se pudieron revocar las runas. Su salida de error aparece abajo.',
     342: 'No se pudo leer el estado del servidor watchtower. Su salida de error aparece abajo.',
     343: 'No se pudieron listar las watchtowers. Su salida de error aparece abajo.',
+
+    // Network
+    344: 'Red',
+    345: 'La red de Bitcoin en la que operar. Debe coincidir con la red del servicio Bitcoin. Regtest es una cadena de pruebas privada para desarrollo: sus monedas no tienen valor. Cada red mantiene su propia cartera y sus propios canales.',
+    346: 'Mainnet',
+    347: 'Regtest',
   },
   de_DE: {
     0: 'Core Lightning wird gestartet!',
@@ -656,6 +662,12 @@ export default {
     341: 'Die Runes konnten nicht widerrufen werden. Die Fehlerausgabe steht unten.',
     342: 'Der Status des Watchtower-Servers konnte nicht gelesen werden. Die Fehlerausgabe steht unten.',
     343: 'Die Watchtowers konnten nicht aufgelistet werden. Die Fehlerausgabe steht unten.',
+
+    // Network
+    344: 'Netzwerk',
+    345: 'Das Bitcoin-Netzwerk, in dem der Knoten läuft. Es muss mit dem Netzwerk des Bitcoin-Dienstes übereinstimmen. Regtest ist eine private Testkette für die Entwicklung: Ihre Coins haben keinen Wert. Jedes Netzwerk hat seine eigene Wallet und seine eigenen Kanäle.',
+    346: 'Mainnet',
+    347: 'Regtest',
   },
   pl_PL: {
     0: 'Uruchamianie Core Lightning!',
@@ -984,6 +996,12 @@ export default {
     341: 'Nie udało się unieważnić run. Komunikat błędu znajduje się poniżej.',
     342: 'Nie udało się odczytać stanu serwera watchtower. Komunikat błędu znajduje się poniżej.',
     343: 'Nie udało się wyświetlić listy watchtowerów. Komunikat błędu znajduje się poniżej.',
+
+    // Network
+    344: 'Sieć',
+    345: 'Sieć Bitcoin, w której działa węzeł. Musi być zgodna z siecią usługi Bitcoin. Regtest to prywatny łańcuch testowy dla programistów: jego monety nie mają wartości. Każda sieć ma własny portfel i własne kanały.',
+    346: 'Mainnet',
+    347: 'Regtest',
   },
   fr_FR: {
     0: 'Démarrage de Core Lightning !',
@@ -1312,5 +1330,11 @@ export default {
     341: "La révocation des runes a échoué. Sa sortie d'erreur figure ci-dessous.",
     342: "La lecture de l'état du serveur watchtower a échoué. Sa sortie d'erreur figure ci-dessous.",
     343: "L'affichage de la liste des watchtowers a échoué. Sa sortie d'erreur figure ci-dessous.",
+
+    // Network
+    344: 'Réseau',
+    345: "Le réseau Bitcoin sur lequel fonctionner. Il doit correspondre au réseau du service Bitcoin. Regtest est une chaîne de test privée pour le développement : ses pièces n'ont aucune valeur. Chaque réseau conserve son propre portefeuille et ses propres canaux.",
+    346: 'Mainnet',
+    347: 'Regtest',
   },
 } satisfies Record<string, LangDict>

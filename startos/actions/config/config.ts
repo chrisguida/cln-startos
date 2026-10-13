@@ -2,6 +2,7 @@ import { sdk } from '../../sdk'
 import { i18n } from '../../i18n'
 import { fullConfigSpec, clnConfig } from '../../fileModels/config'
 import { storeJson } from '../../fileModels/store.json'
+import { teosToml } from '../../fileModels/teos.toml'
 
 export const config = sdk.Action.withInput(
   // id
@@ -19,6 +20,7 @@ export const config = sdk.Action.withInput(
 
   // form input specification
   fullConfigSpec.filter({
+    network: true,
     alias: true,
     color: true,
     'tor-only': true,
@@ -47,5 +49,9 @@ export const config = sdk.Action.withInput(
       customExternalHosts: host ? [host] : [],
     })
     await clnConfig.merge(effects, input)
+    await teosToml.merge(effects, {
+      btc_network:
+        input.network.selection === 'regtest' ? 'regtest' : 'mainnet',
+    })
   },
 )

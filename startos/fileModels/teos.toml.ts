@@ -10,7 +10,7 @@ const shape = z.looseObject({
   rpc_bind: z.literal('127.0.0.1').catch('127.0.0.1'),
   rpc_port: z.literal(8814).catch(8814),
 
-  btc_network: z.literal('mainnet').catch('mainnet'),
+  btc_network: z.enum(['mainnet', 'regtest']).catch('mainnet'),
   btc_rpc_connect: z.string().optional().catch(undefined),
   btc_rpc_port: z.number().optional().catch(undefined),
   btc_rpc_cookie: z

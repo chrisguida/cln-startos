@@ -245,7 +245,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
       exec: {
         command: ['node', '/app/apps/backend/dist/server.js'],
         env: {
-          BITCOIN_NETWORK: 'bitcoin',
+          BITCOIN_NETWORK: conf?.raw?.network ?? 'bitcoin',
           LIGHTNING_DATA_DIR: rootDir,
           APP_PROTOCOL: 'https',
           APP_HOST: '0.0.0.0',
