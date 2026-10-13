@@ -82,6 +82,10 @@ export const shape = z.object({
   'bitcoin-rpcpassword': z.undefined().catch(undefined),
   'grpc-port': z.literal(grpcPort).catch(grpcPort),
   'grpc-host': z.literal('0.0.0.0').catch('0.0.0.0'),
+  // Regtest only: lightningd accepts dev- options on any network once
+  // `developer` is set, so formToFile writes these two for regtest alone.
+  developer: iniBoolean,
+  'dev-blake2b-activation-height': iniNumber,
 
   // Dynamic (set at runtime)
   'announce-addr': iniStringArray,
@@ -163,7 +167,18 @@ export const fullConfigSpec = InputSpec.of({
       },
       regtest: {
         name: i18n('Regtest'),
-        spec: InputSpec.of({}),
+        spec: InputSpec.of({
+          'blake2b-activation-height': Value.number({
+            name: i18n('BLAKE2b Test Activation Height'),
+            description: i18n(
+              'Block height from which the regtest chain uses BLAKE2b proof of work. Set it to the BLAKE2b test activation height of the Bitcoin service. Setting it also turns on developer mode. Leave empty to keep the regtest default.',
+            ),
+            required: false,
+            default: null,
+            min: 1,
+            integer: true,
+          }),
+        }),
       },
     }),
   }),
@@ -350,6 +365,7 @@ export function fileToForm(
 ): T.DeepPartial<typeof fullConfigSpec._TYPE> {
   const {
     network,
+    'dev-blake2b-activation-height': blake2bHeight,
     alias,
     rgb,
     'always-use-proxy': alwaysUseProxy,
@@ -367,7 +383,10 @@ export function fileToForm(
     raw: input ?? {},
     network:
       network === 'regtest'
-        ? { selection: 'regtest' as const, value: {} }
+        ? {
+            selection: 'regtest' as const,
+            value: { 'blake2b-activation-height': blake2bHeight ?? null },
+          }
         : { selection: 'bitcoin' as const, value: {} },
     alias,
     color: rgb,
@@ -401,6 +420,11 @@ function formToFile(
     clnrest,
   } = input
 
+  const blake2bHeight =
+    (network?.selection === 'regtest' &&
+      network.value?.['blake2b-activation-height']) ||
+    undefined
+
   // Preserve plugin array from raw (managed externally by plugin actions)
   const plugins = (raw?.plugin || []).filter(
     (p): p is string => typeof p === 'string',
@@ -427,6 +451,8 @@ function formToFile(
     'bitcoin-rpcpassword': undefined,
     'grpc-port': grpcPort,
     'grpc-host': '0.0.0.0',
+    developer: blake2bHeight ? true : undefined,
+    'dev-blake2b-activation-height': blake2bHeight,
 
     // Node identity
     alias: alias || undefined,

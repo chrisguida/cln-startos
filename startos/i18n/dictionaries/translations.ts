@@ -226,6 +226,10 @@ export default {
     235: 'La red de Bitcoin en la que operar. Debe coincidir con la red del servicio Bitcoin. Regtest es una cadena de pruebas privada para desarrollo: sus monedas no tienen valor. Cada red mantiene su propia cartera y sus propios canales.',
     236: 'Mainnet',
     237: 'Regtest',
+
+    // Network: BLAKE2b
+    238: 'Altura de activación de prueba de BLAKE2b',
+    239: 'Altura de bloque a partir de la cual la cadena regtest usa prueba de trabajo BLAKE2b. Póngala en la altura de activación de prueba de BLAKE2b del servicio Bitcoin. Al establecerla también se activa el modo de desarrollador. Déjelo vacío para mantener el valor predeterminado de regtest.',
   },
   de_DE: {
     0: 'Core Lightning wird gestartet!',
@@ -452,6 +456,10 @@ export default {
     235: 'Das Bitcoin-Netzwerk, in dem der Knoten läuft. Es muss mit dem Netzwerk des Bitcoin-Dienstes übereinstimmen. Regtest ist eine private Testkette für die Entwicklung: Ihre Coins haben keinen Wert. Jedes Netzwerk hat seine eigene Wallet und seine eigenen Kanäle.',
     236: 'Mainnet',
     237: 'Regtest',
+
+    // Network: BLAKE2b
+    238: 'BLAKE2b-Testaktivierungshöhe',
+    239: 'Blockhöhe, ab der die Regtest-Kette BLAKE2b-Proof-of-Work verwendet. Setzen Sie sie auf die BLAKE2b-Testaktivierungshöhe des Bitcoin-Dienstes. Das Setzen schaltet auch den Entwicklermodus ein. Leer lassen, um den Regtest-Standard beizubehalten.',
   },
   pl_PL: {
     0: 'Uruchamianie Core Lightning!',
@@ -678,6 +686,10 @@ export default {
     235: 'Sieć Bitcoin, w której działa węzeł. Musi być zgodna z siecią usługi Bitcoin. Regtest to prywatny łańcuch testowy dla programistów: jego monety nie mają wartości. Każda sieć ma własny portfel i własne kanały.',
     236: 'Mainnet',
     237: 'Regtest',
+
+    // Network: BLAKE2b
+    238: 'Testowa wysokość aktywacji BLAKE2b',
+    239: 'Wysokość bloku, od której łańcuch regtest używa dowodu pracy BLAKE2b. Ustaw ją na testową wysokość aktywacji BLAKE2b usługi Bitcoin. Ustawienie jej włącza także tryb deweloperski. Pozostaw puste, aby zachować domyślne ustawienie regtest.',
   },
   fr_FR: {
     0: 'Démarrage de Core Lightning !',
@@ -904,5 +916,9 @@ export default {
     235: "Le réseau Bitcoin sur lequel fonctionner. Il doit correspondre au réseau du service Bitcoin. Regtest est une chaîne de test privée pour le développement : ses pièces n'ont aucune valeur. Chaque réseau conserve son propre portefeuille et ses propres canaux.",
     236: 'Mainnet',
     237: 'Regtest',
+
+    // Network: BLAKE2b
+    238: "Hauteur d'activation de test de BLAKE2b",
+    239: "Hauteur de bloc à partir de laquelle la chaîne regtest utilise la preuve de travail BLAKE2b. Réglez-la sur la hauteur d'activation de test de BLAKE2b du service Bitcoin. La définir active aussi le mode développeur. Laissez vide pour conserver la valeur par défaut de regtest.",
   },
 } satisfies Record<string, LangDict>

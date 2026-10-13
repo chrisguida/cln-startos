@@ -260,6 +260,10 @@ const dict = {
   'The Bitcoin network to run on. It must match the network of the Bitcoin service. Regtest is a private test chain for development: its coins have no value. Each network keeps its own wallet and channels.': 235,
   Mainnet: 236,
   Regtest: 237,
+
+  // Network: BLAKE2b
+  'BLAKE2b Test Activation Height': 238,
+  'Block height from which the regtest chain uses BLAKE2b proof of work. Set it to the BLAKE2b test activation height of the Bitcoin service. Setting it also turns on developer mode. Leave empty to keep the regtest default.': 239,
 } as const
 
 /**
