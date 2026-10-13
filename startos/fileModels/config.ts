@@ -71,7 +71,7 @@ export const clbossZerobasefees = [
 
 export const shape = z.object({
   // Enforced by StartOS
-  network: z.literal('bitcoin').catch('bitcoin'),
+  network: z.enum(['bitcoin', 'regtest']).catch('bitcoin'),
   'bitcoin-rpcconnect': iniString,
   'bitcoin-rpcport': iniNumber,
   'bitcoin-datadir': z.literal(bitcoinDataDir).catch(bitcoinDataDir),
@@ -145,10 +145,28 @@ export const dropClboss = (plugins: string[]) => ({
   'clboss-max-channel': undefined,
 })
 
-const { InputSpec, Value } = sdk
+const { InputSpec, Value, Variants } = sdk
 
 export const fullConfigSpec = InputSpec.of({
   raw: Value.hidden(shape),
+
+  network: Value.union({
+    name: i18n('Network'),
+    description: i18n(
+      'The Bitcoin network to run on. It must match the network of the Bitcoin service. Regtest is a private test chain for development: its coins have no value. Each network keeps its own wallet and channels.',
+    ),
+    default: 'bitcoin',
+    variants: Variants.of({
+      bitcoin: {
+        name: i18n('Mainnet'),
+        spec: InputSpec.of({}),
+      },
+      regtest: {
+        name: i18n('Regtest'),
+        spec: InputSpec.of({}),
+      },
+    }),
+  }),
 
   // Node identity
   alias: Value.text({
@@ -331,6 +349,7 @@ export function fileToForm(
   input: z.infer<typeof shape>,
 ): T.DeepPartial<typeof fullConfigSpec._TYPE> {
   const {
+    network,
     alias,
     rgb,
     'always-use-proxy': alwaysUseProxy,
@@ -346,6 +365,10 @@ export function fileToForm(
 
   return {
     raw: input ?? {},
+    network:
+      network === 'regtest'
+        ? { selection: 'regtest' as const, value: {} }
+        : { selection: 'bitcoin' as const, value: {} },
     alias,
     color: rgb,
     'tor-only': alwaysUseProxy === undefined ? null : alwaysUseProxy === 'true',
@@ -365,6 +388,7 @@ function formToFile(
 ): z.infer<typeof shape> {
   const {
     raw,
+    network,
     alias,
     color,
     'tor-only': torOnly,
@@ -389,7 +413,10 @@ function formToFile(
     'announce-addr': raw?.['announce-addr']?.filter((a): a is string => !!a),
 
     // Enforced
-    network: 'bitcoin' as const,
+    network:
+      network?.selection === 'regtest'
+        ? ('regtest' as const)
+        : ('bitcoin' as const),
     // bitcoin-rpcconnect / bitcoin-rpcport come from `raw` (set to bitcoind's
     // bridge address by watchHosts), preserved across config-action writes;
     // absent until bitcoind's binding resolves.
@@ -444,3 +471,15 @@ export const clnConfig = FileHelper.raw<FormData>(
   },
   (data) => fullConfigSpec.partialValidator.parse(data),
 )
+
+/**
+ * The network lightningd runs on, which is also the name of the subdirectory
+ * of the lightning directory that holds its wallet, database and gossip store.
+ * Pass `effects` to subscribe reactively; omit it for a one-shot read.
+ */
+export const lightningNetwork = async (effects?: T.Effects) => {
+  const network = clnConfig.read((c) => c.raw?.network)
+  return (
+    (await (effects ? network.const(effects) : network.once())) ?? 'bitcoin'
+  )
+}

@@ -220,6 +220,12 @@ export default {
     231: 'Todas las runas emitidas por este nodo están ahora revocadas, y Core Lightning se está reiniciando para emitir una nueva a la interfaz web. Cualquier otra integración que usara una runa necesita una nueva de la acción «Crear runa».',
     232: 'Este nodo no ha emitido ninguna runa, así que no había nada que revocar.',
     233: 'No se pudieron revocar las runas',
+
+    // Network
+    234: 'Red',
+    235: 'La red de Bitcoin en la que operar. Debe coincidir con la red del servicio Bitcoin. Regtest es una cadena de pruebas privada para desarrollo: sus monedas no tienen valor. Cada red mantiene su propia cartera y sus propios canales.',
+    236: 'Mainnet',
+    237: 'Regtest',
   },
   de_DE: {
     0: 'Core Lightning wird gestartet!',
@@ -440,6 +446,12 @@ export default {
     231: 'Alle von diesem Node ausgestellten Runes sind jetzt widerrufen, und Core Lightning startet neu, um der Weboberfläche eine neue auszustellen. Jede andere Integration, die eine Rune genutzt hat, benötigt eine neue aus der Aktion „Rune erstellen“.',
     232: 'Dieser Node hat keine Runes ausgestellt, es gab also nichts zu widerrufen.',
     233: 'Runes konnten nicht widerrufen werden',
+
+    // Network
+    234: 'Netzwerk',
+    235: 'Das Bitcoin-Netzwerk, in dem der Knoten läuft. Es muss mit dem Netzwerk des Bitcoin-Dienstes übereinstimmen. Regtest ist eine private Testkette für die Entwicklung: Ihre Coins haben keinen Wert. Jedes Netzwerk hat seine eigene Wallet und seine eigenen Kanäle.',
+    236: 'Mainnet',
+    237: 'Regtest',
   },
   pl_PL: {
     0: 'Uruchamianie Core Lightning!',
@@ -660,6 +672,12 @@ export default {
     231: 'Wszystkie runy wydane przez ten węzeł zostały unieważnione, a Core Lightning uruchamia się ponownie, aby wydać nową runę interfejsowi webowemu. Każda inna integracja, która korzystała z runy, potrzebuje nowej z akcji „Utwórz runę”.',
     232: 'Ten węzeł nie wydał żadnych run, więc nie było czego unieważniać.',
     233: 'Nie udało się unieważnić run',
+
+    // Network
+    234: 'Sieć',
+    235: 'Sieć Bitcoin, w której działa węzeł. Musi być zgodna z siecią usługi Bitcoin. Regtest to prywatny łańcuch testowy dla programistów: jego monety nie mają wartości. Każda sieć ma własny portfel i własne kanały.',
+    236: 'Mainnet',
+    237: 'Regtest',
   },
   fr_FR: {
     0: 'Démarrage de Core Lightning !',
@@ -880,5 +898,11 @@ export default {
     231: "Toutes les runes émises par ce nœud sont désormais révoquées, et Core Lightning redémarre pour en délivrer une nouvelle à l'interface web. Toute autre intégration qui utilisait une rune a besoin d'une nouvelle via l'action « Créer une rune ».",
     232: "Ce nœud n'a émis aucune rune, il n'y avait donc rien à révoquer.",
     233: 'Échec de la révocation des runes',
+
+    // Network
+    234: 'Réseau',
+    235: "Le réseau Bitcoin sur lequel fonctionner. Il doit correspondre au réseau du service Bitcoin. Regtest est une chaîne de test privée pour le développement : ses pièces n'ont aucune valeur. Chaque réseau conserve son propre portefeuille et ses propres canaux.",
+    236: 'Mainnet',
+    237: 'Regtest',
   },
 } satisfies Record<string, LangDict>

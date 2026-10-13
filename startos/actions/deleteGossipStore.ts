@@ -1,4 +1,5 @@
 import * as fs from 'fs/promises'
+import { lightningNetwork } from '../fileModels/config'
 import { i18n } from '../i18n'
 import { sdk } from '../sdk'
 
@@ -18,9 +19,12 @@ export const deleteGossipStore = sdk.Action.withoutInput(
 
   // the execution function
   async ({ effects }) => {
-    await fs.rm('/media/startos/volumes/main//bitcoin/gossip_store', {
-      recursive: true,
-    })
+    await fs.rm(
+      `/media/startos/volumes/main/${await lightningNetwork()}/gossip_store`,
+      {
+        recursive: true,
+      },
+    )
 
     await sdk.restart(effects)
 

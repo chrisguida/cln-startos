@@ -254,6 +254,12 @@ const dict = {
   'Every rune this node had issued is now revoked, and Core Lightning is restarting to issue the web UI a fresh one. Any other integration that used a rune needs a new one from the "Create Rune" action.': 231,
   'This node has not issued any runes, so there was nothing to revoke.': 232,
   'Failed to Revoke Runes': 233,
+
+  // Network
+  Network: 234,
+  'The Bitcoin network to run on. It must match the network of the Bitcoin service. Regtest is a private test chain for development: its coins have no value. Each network keeps its own wallet and channels.': 235,
+  Mainnet: 236,
+  Regtest: 237,
 } as const
 
 /**
