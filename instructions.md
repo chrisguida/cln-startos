@@ -99,6 +99,6 @@ The old node must run the same Core Lightning version as this service or an olde
 
 ## Limitations
 
-- **Mainnet only.** Testnet, signet, and regtest are not exposed.
+- **Mainnet or regtest.** General Settings has a **Network** choice; testnet and signet are not exposed. Regtest is for development, needs the Bitcoin service on regtest as well, and keeps its own wallet and channels, separate from mainnet's.
 - **Bitcoin authentication is cookie-based.** `bitcoin-rpcuser` and `bitcoin-rpcpassword` are intentionally not configurable; CLN uses the mounted Bitcoin cookie file.
 - **The `config` file is managed through actions.** Manual edits will be overwritten on the next config sync.
