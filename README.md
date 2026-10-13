@@ -148,7 +148,7 @@ Thirteen actions. Four configure the node, three concern the watchtower, and the
 
 Three actions writing `/config`, grouped together. Each writes only the fields it presents, costs seconds plus a restart, and is safe to re-run — the forms are pre-filled from the current file.
 
-- **General Settings** carries node identity, fee policy, channel minimums, Tor Only, the custom external host, and the CLNrest and Clams toggles. Two combinations produce a visible consequence rather than an error: Tor Only with a custom external host drops the host and raises a health check, and the Clams toggle changes the bind addresses.
+- **General Settings** carries node identity, fee policy, channel minimums, Tor Only, the custom external host, and the CLNrest and Clams toggles. **Network** is `bitcoin` (default) or `regtest`, written as `network=`; lightningd keeps each network's state in a subdirectory of that name, and the backup excludes, Display Seed, Delete Gossip Store, the web UI and the watchtower follow it. On regtest an optional **BLAKE2b Test Activation Height** is written as `dev-blake2b-activation-height` together with `developer`; neither is ever written for mainnet. Two combinations produce a visible consequence rather than an error: Tor Only with a custom external host drops the host and raises a health check, and the Clams toggle changes the bind addresses.
 - **Plugins** selects which of the built-in plugins load, and carries CLBOSS's tuning.
 - **Experimental Features** exposes upstream's experimental flags, which are not standardized across implementations and may break between releases.
 
