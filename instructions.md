@@ -53,7 +53,7 @@
   - **Recovery: Replay Closes** — repeats on this chain the channel closes that happened on the other one. It starts as a dry run. It never repeats a withdrawal.
   - **Recovery: Repair Wallet** — makes the wallet match this chain: coins you spent on the other chain only come back, coins that only exist there disappear. Run it after the replayed closes have confirmed.
   - **Recovery: Split Coins** — moves your coins in transactions that are valid on this chain only.
-  - **Recovery: Finish** — leaves recovery mode and reconnects to the network.
+  - **Recovery: Finish** — leaves recovery mode and reconnects to the network. It refuses while a channel is still open or unresolved.
 - **Delete Gossip Store** — delete a corrupted `gossip_store`; CLN will rebuild it from peers on next start. Available when the service is stopped.
 
 ### Backups and restore
