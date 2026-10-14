@@ -1,23 +1,6 @@
 import { storeJson } from '../fileModels/store.json'
+import { heightsFor, SplitHeights } from './heights'
 import { CliError, Tools } from './tools'
-
-/**
- * Where the SHA256d and BLAKE2b chains part.
- * - `split`: the first height at which the two chains hold different blocks.
- * - `activation`: the first height with a 164-byte BLAKE2b header.
- * - `rescanFrom`: a height safely below the split, for lightningd's --rescan.
- */
-export type SplitHeights = {
-  split: number
-  activation: number
-  rescanFrom: number
-}
-
-const mainnet: SplitHeights = {
-  split: 961_632,
-  activation: 961_640,
-  rescanFrom: 961_600,
-}
 
 /**
  * Mainnet has fixed heights. Regtest takes the BLAKE2b test activation height
@@ -26,14 +9,10 @@ const mainnet: SplitHeights = {
 export async function splitHeights(
   network: string,
 ): Promise<SplitHeights | null> {
-  if (network !== 'regtest') return mainnet
-  const height = await storeJson.read((s) => s.blake2bActivationHeight).once()
-  if (!height) return null
-  return {
-    split: height,
-    activation: height,
-    rescanFrom: Math.max(height - 40, 0),
-  }
+  return heightsFor(
+    network,
+    await storeJson.read((s) => s.blake2bActivationHeight).once(),
+  )
 }
 
 export const sha256dHeaderBytes = 80

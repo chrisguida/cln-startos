@@ -4,9 +4,9 @@ import {
   ChainComparison,
   compareChains,
   sha256dHeaderBytes,
-  SplitHeights,
   splitHeights,
 } from './chain'
+import { SplitHeights } from './heights'
 import {
   fetchLists,
   htlcCount,
@@ -17,7 +17,7 @@ import {
   walletTotals,
 } from './node'
 import { ChainRecord } from './snapshot'
-import { Tools } from './tools'
+import { CliError, Tools } from './tools'
 
 /** `$` starts a placeholder in an i18n parameter: double it in free text. */
 export const literal = (text: string) => text.replace(/\$/g, '$$$$')
@@ -41,6 +41,26 @@ export const group = (
   name: string,
   value: T.ActionResultMember[],
 ): T.ActionResultMember => ({ name, description: null, type: 'group', value })
+
+/**
+ * The result for a long call whose client gave up waiting. That is not a
+ * failure: lightningd carries on, and the action must not be run again blind.
+ */
+export const stillRunning = (
+  what: string,
+  e: unknown,
+): (T.ActionResult & { version: '1' }) | null =>
+  e instanceof CliError && e.timedOut
+    ? {
+        version: '1',
+        title: i18n('Still running'),
+        message: i18n(
+          'STILL RUNNING: ${what} has not answered within the time this action waits. It has not failed: Core Lightning is still working on it. Do not start it again; follow the service logs and run Recovery: Status later.',
+          { what: literal(what) },
+        ),
+        result: null,
+      }
+    : null
 
 export type State = {
   heights: SplitHeights | null

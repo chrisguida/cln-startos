@@ -476,6 +476,10 @@ const dict = {
   'Withdrawal ${txid} broadcast to ${destination}. The raw transaction is saved as ${file}.': 443,
   '${amount} sat remain in the wallet. Core Lightning holds back ${reserve} sat for fee-bumping while a channel with anchor outputs is unresolved; withdraw again once every channel has been forgotten.': 444,
   'Remaining in the wallet': 445,
+
+  // Recovery: still running
+  'Still running': 446,
+  'STILL RUNNING: ${what} has not answered within the time this action waits. It has not failed: Core Lightning is still working on it. Do not start it again; follow the service logs and run Recovery: Status later.': 447,
 } as const
 
 /**

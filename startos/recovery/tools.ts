@@ -15,6 +15,8 @@ import {
  * the wallet or wait on a peer get their own.
  */
 export const quick = 60_000
+/** For calls whose duration grows with the wallet: lists, withdrawals. */
+export const slow = 30 * 60_000
 
 export class CliError extends Error {
   constructor(
@@ -201,7 +203,7 @@ export async function withTools<R>(
               databasePath(network),
               sql,
             ],
-            quick,
+            10 * 60_000,
           )
           if (!res.ok) {
             throw new CliError(

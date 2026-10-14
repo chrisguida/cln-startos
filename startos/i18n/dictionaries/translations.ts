@@ -442,6 +442,10 @@ export default {
     443: 'Retirada ${txid} difundida a ${destination}. La transacción en bruto se ha guardado como ${file}.',
     444: 'Quedan ${amount} sat en el monedero. Core Lightning retiene ${reserve} sat para aumentar comisiones mientras haya un canal con salidas de anclaje sin resolver; vuelva a retirar cuando todos los canales hayan sido olvidados.',
     445: 'Restante en el monedero',
+
+    // Recovery: still running
+    446: 'Sigue en ejecución',
+    447: 'SIGUE EN EJECUCIÓN: ${what} no ha respondido dentro del tiempo que espera esta acción. No ha fallado: Core Lightning sigue trabajando en ello. No lo inicie de nuevo; siga los registros del servicio y ejecute Recuperación: Estado más tarde.',
   },
   de_DE: {
     0: 'Core Lightning wird gestartet!',
@@ -884,6 +888,10 @@ export default {
     443: 'Auszahlung ${txid} an ${destination} gesendet. Die Rohtransaktion ist als ${file} gespeichert.',
     444: '${amount} sat verbleiben in der Wallet. Core Lightning hält ${reserve} sat für Gebührenerhöhungen zurück, solange ein Kanal mit Anchor-Outputs nicht abgewickelt ist; heben Sie erneut ab, sobald alle Kanäle vergessen wurden.',
     445: 'Verbleibt im Wallet',
+
+    // Recovery: still running
+    446: 'Läuft noch',
+    447: 'LÄUFT NOCH: ${what} hat nicht innerhalb der Zeit geantwortet, die diese Aktion wartet. Der Vorgang ist nicht fehlgeschlagen: Core Lightning arbeitet noch daran. Starten Sie ihn nicht erneut; verfolgen Sie die Logs des Dienstes und führen Sie später Wiederherstellung: Status aus.',
   },
   pl_PL: {
     0: 'Uruchamianie Core Lightning!',
@@ -1326,6 +1334,10 @@ export default {
     443: 'Wypłata ${txid} rozgłoszona na adres ${destination}. Surowa transakcja została zapisana jako ${file}.',
     444: 'W portfelu pozostaje ${amount} sat. Core Lightning zatrzymuje ${reserve} sat na podbijanie opłat, dopóki kanał z wyjściami kotwiczącymi pozostaje nierozliczony; wypłatę należy powtórzyć, gdy wszystkie kanały zostaną zapomniane.',
     445: 'Pozostaje w portfelu',
+
+    // Recovery: still running
+    446: 'Nadal trwa',
+    447: 'NADAL TRWA: ${what} – brak odpowiedzi w czasie, przez który ta akcja czeka. Operacja nie zakończyła się niepowodzeniem: Core Lightning nadal nad nią pracuje. Nie należy uruchamiać jej ponownie; należy śledzić logi usługi i później uruchomić Odzyskiwanie: Stan.',
   },
   fr_FR: {
     0: 'Démarrage de Core Lightning !',
@@ -1768,5 +1780,9 @@ export default {
     443: 'Retrait ${txid} diffusé vers ${destination}. La transaction brute est enregistrée sous ${file}.',
     444: "${amount} sat restent dans le portefeuille. Core Lightning retient ${reserve} sat pour l'augmentation des frais tant qu'un canal avec sorties d'ancrage n'est pas résolu ; effectuez un nouveau retrait une fois tous les canaux oubliés.",
     445: 'Restant dans le portefeuille',
+
+    // Recovery: still running
+    446: 'Toujours en cours',
+    447: "TOUJOURS EN COURS : ${what} n'a pas répondu dans le délai d'attente de cette action. L'opération n'a pas échoué : Core Lightning y travaille encore. Ne la relancez pas ; suivez les journaux du service et exécutez Récupération : État plus tard.",
   },
 } satisfies Record<string, LangDict>

@@ -9,7 +9,8 @@ import {
   writeFile,
 } from 'fs/promises'
 import { rootDir } from '../utils'
-import { ChainComparison, SplitHeights } from './chain'
+import { ChainComparison } from './chain'
+import { SplitHeights } from './heights'
 import { fetchLists, listMethods, Lists } from './node'
 import { Tools } from './tools'
 
