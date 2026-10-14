@@ -97,11 +97,14 @@ The web UI's `config.json` carries its display preferences and its password hash
 
 ## Dependencies
 
-One, and it is required.
+One Bitcoin service, chosen by **General Settings → Bitcoin Backend** (`bitcoinBackend` in `store.json`). A dependency is identified by its package id, so each choice is declared as an optional dependency and the setting enables exactly one of them.
 
-| Dependency | Kind      | Health checks               | Mount                     | Why                            |
-| ---------- | --------- | --------------------------- | ------------------------- | ------------------------------ |
-| Bitcoin    | `running` | `bitcoind`, `sync-progress` | `/mnt/bitcoin`, read-only | Chain data, and the RPC cookie |
+| Dependency                                | Kind      | Health checks               | Mount                     | Why                            |
+| ----------------------------------------- | --------- | --------------------------- | ------------------------- | ------------------------------ |
+| Bitcoin (`bitcoind`, the default)         | `running` | `bitcoind`, `sync-progress` | `/mnt/bitcoin`, read-only | Chain data, and the RPC cookie |
+| Knots pre-RDTS (`knots-prerdts`), instead | `running` | `bitcoind`, `sync-progress` | `/mnt/bitcoin`, read-only | Chain data, and the RPC cookie |
+
+The RPC bridge address, the cookie mount, `teos.toml` and the sync health check all follow the same choice. Changing it restarts the node against the other service; it does not move the wallet between chains (see [Recovery](#recovery--status-snapshot-offline-mode-close-all-channels-withdraw-to-sha256d-wallet)).
 
 Both health checks are required, not just "running": a node that is up but still syncing cannot serve a Lightning node correctly, and the sync state is surfaced again in this package's own [`check-synced`](#health-checks).
 
@@ -211,6 +214,18 @@ Grouped under Payments. **Pay Invoice** pays a BOLT11 invoice from the node's ow
 ### Node Info
 
 Read-only, running only: the node's identity and current state.
+
+### Recovery — Status, Snapshot, Offline Mode, Close All Channels, Withdraw to SHA256d Wallet
+
+Grouped under Recovery. They are the first stage of moving a node from the SHA256d chain to the BLAKE2b chain: this build does what can only be done on the chain the node has followed, and saves what the BLAKE2b build of this package (same package id, same volume) needs afterwards. The split heights are fixed for mainnet (the chains part at 961632, BLAKE2b headers start at 961640) and come from **Network → BLAKE2b Test Activation Height** on regtest. Every action appends one line to `recovery/actions.log` on the main volume.
+
+- **Recovery: Status** (`recovery-status`, any status, read-only) reports the backend's block at the activation height and its header length (80 bytes is SHA256d), the range of blocks in lightningd's database compared with the backend's, channels by state, HTLCs in flight, wallet outputs and totals, and a verdict per channel group: still open, closed after the split, closed before the split. The database is read with `sqlite3`, so the chain part works with the service stopped.
+- **Recovery: Snapshot** (`recovery-snapshot`, any status) writes `recovery/<timestamp>/` (mode 700, files 600) with `hsm_secret`, `emergency.recover`, `config`, `lightningd.sqlite3`, `chain.json` and, when lightningd is running, `listtransactions.json`, `listclosedchannels.json`, `listpeerchannels.json` and `listfunds.json`. The database is copied with SQLite's online backup API (`sqlite3 .backup`), which is consistent whether or not lightningd is running; a plain file copy under a running lightningd is not. It never writes into an existing directory. It also refreshes `recovery/final/`.
+- **Recovery: Offline Mode** (`recovery-offline`, any status) sets `offline` in `store.json`, which adds `--offline` to lightningd's command line until it is turned off. On-chain broadcasts are not stopped by it.
+- **Recovery: Close All Channels** (`recovery-close-all`, running only) refuses while HTLCs are in flight unless forced, then runs `close` on every open channel in parallel with the given unilateral timeout (default 120 s) and a feerange whose floor is the given feerate (default 1500 per kvB; below 1100 is refused). Its `lightning-cli` calls wait for the unilateral timeout plus two minutes, not the default 30 seconds. It reports type, txid, fee and raw transaction per channel.
+- **Recovery: Withdraw to SHA256d Wallet** (`recovery-withdraw`, running only) sends the whole on-chain balance to one address at an explicit feerate (default 3000 per kvB; below 1100 is refused). It requires an acknowledgement that the address is self-custodied, because the transaction is valid on both chains, and refuses while a channel is open or unresolved unless forced. The raw transaction is saved as `recovery/final/withdraw-<txid>.hex` and returned.
+
+After every close and withdraw, and with every snapshot, `recovery/final/` is rewritten from the running node. The BLAKE2b build replays closes from the lists in `recovery/` and never from the node's memory, so the last thing to do in this build is a snapshot taken after every close has fully resolved (after a unilateral close: after the CSV delay and the sweep).
 
 ### CLBOSS — Status, Ignore On-chain Funds, Resume On-chain Management, Unmanage Peer
 
