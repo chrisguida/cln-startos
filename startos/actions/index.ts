@@ -15,6 +15,8 @@ import { displaySeed } from './displaySeed'
 import { clearnetVpn } from './clearnetVpn'
 import { payInvoice } from './payInvoice'
 import { receivePayment } from './receivePayment'
+import { recoveryOffline } from './recovery/offline'
+import { recoverySnapshot } from './recovery/snapshot'
 import { recoveryStatus } from './recovery/status'
 import {
   clbossIgnoreOnchain,
@@ -45,5 +47,7 @@ export const actions = sdk.Actions.of()
   .addAction(clbossNoticeOnchain)
   .addAction(clbossUnmanage)
   .addAction(recoveryStatus)
+  .addAction(recoverySnapshot)
+  .addAction(recoveryOffline)
 
 // @TODO generate-lnlink

@@ -413,6 +413,25 @@ const dict = {
   'HTLCs in flight': 386,
   'Wallet totals': 387,
   Output: 388,
+
+  // Recovery: snapshot, offline
+  'Recovery: Offline Mode': 389,
+  'Starts Core Lightning with --offline: it connects to no peer and accepts no connection, so channels cannot change while you work on a recovery. It still follows the Bitcoin backend and still broadcasts on-chain transactions.': 390,
+  'Core Lightning restarts. While offline it cannot pay, be paid, or close a channel cooperatively.': 391,
+  Offline: 392,
+  'Keep Core Lightning disconnected from all peers.': 393,
+  'Offline mode is on. If Core Lightning is running it restarts now without peer connections.': 394,
+  'Offline mode is off. If Core Lightning is running it restarts now and reconnects to its peers.': 395,
+  'Recovery: Snapshot': 396,
+  "Writes a timestamped directory under recovery/ on this service's volume with copies of hsm_secret, emergency.recover, the config, a consistent copy of the database, and the lists of transactions, channels and funds. Also refreshes recovery/final, which the BLAKE2b build replays closes from. Take one before closing channels, and a last one after every close has fully resolved.": 397,
+  "The snapshot contains the node's secret key. It stays on this volume and is included in backups of this service. The database copy is as large as the database.": 398,
+  'Snapshot written': 399,
+  'Snapshot written to ${dir} on the main volume, and recovery/final refreshed.': 400,
+  'Snapshot written to ${dir} on the main volume. Core Lightning is not running, so the lists of transactions, channels and funds are missing and recovery/final was not refreshed: start it and take another snapshot.': 401,
+  Directory: 402,
+  Files: 403,
+  Missing: 404,
+  'Transactions saved': 405,
 } as const
 
 /**
