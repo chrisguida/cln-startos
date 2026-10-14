@@ -432,6 +432,31 @@ const dict = {
   Files: 403,
   Missing: 404,
   'Transactions saved': 405,
+
+  // Recovery: close all
+  'Recovery: Close All Channels': 406,
+  'Closes every open channel. Each close is tried cooperatively first; a peer that has not answered within the unilateral timeout is force-closed. Afterwards the lists in recovery/final are refreshed.': 407,
+  "Closing channels cannot be undone. A unilateral close locks your side of the channel for the peer's CSV delay, and its fee was fixed when the commitment was signed.": 408,
+  'Unilateral Timeout': 409,
+  'How long to wait for each peer to agree to a cooperative close before closing unilaterally. This action runs until every channel has answered, so it can take this long.': 410,
+  'Lowest Close Feerate': 411,
+  'The lowest feerate this node accepts for a cooperative close. The close transaction must pay at least 1 sat per vbyte by itself to be replayed on the other chain; values below 1100 are refused.': 412,
+  'Close With HTLCs In Flight': 413,
+  'Close even though payments are still in flight. Their outcome is then settled on chain, which takes longer and costs more.': 414,
+  'Core Lightning is not answering.': 415,
+  'Refused: ${count} HTLC(s) are in flight. Wait for them to settle, or turn on "Close With HTLCs In Flight".': 416,
+  'Nothing to close': 417,
+  'This node has no open channels.': 418,
+  Error: 419,
+  'Close type': 420,
+  'Transaction ID': 421,
+  'Fee paid': 422,
+  'Raw transaction': 423,
+  'Some closes failed': 424,
+  'Channels closing': 425,
+  '${closed} of ${total} channel(s) closing: ${unilateral} unilaterally, ${failed} failed. Feerange offered: ${range}.': 426,
+  'Wait until Recovery: Status shows every channel resolved (after a unilateral close that includes the CSV delay and the sweep), then take a Recovery: Snapshot so that recovery/final holds every close and sweep transaction.': 427,
+  'Refused: ${rate} sat per 1000 vbytes is below the minimum of ${min}. A transaction below 1 sat per vbyte is not relayed by Bitcoin Knots and could not be replayed on the other chain.': 428,
 } as const
 
 /**
