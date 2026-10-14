@@ -148,11 +148,14 @@ RUN set -eu; \
 # build an HTTPS client, so no tower ever registers (see README.md).
 #
 # `libpq5` and `libsodium23` are lightningd's own runtime deps.
+#
+# `sqlite3` is for the Recovery actions: a consistent copy of lightningd's
+# database (`.backup`) and read-only queries on it while lightningd is stopped.
 FROM debian:bookworm-slim AS final
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     ca-certificates libev-dev libcurl4-gnutls-dev libsqlite3-dev libunwind-dev \
-    libpq5 libsodium23 wireguard-tools iptables iproute2 procps && \
+    libpq5 libsodium23 wireguard-tools iptables iproute2 procps sqlite3 && \
     rm -rf /var/lib/apt/lists/*
 
 COPY --from=bitcoin-cli /usr/bin/bitcoin-cli /usr/bin/bitcoin-cli
