@@ -404,6 +404,14 @@ const dict = {
   'Outputs checked': 365,
   'Still running': 366,
   'STILL RUNNING: ${what} has not answered within the time this action waits. It has not failed: Core Lightning is still working on it. Do not start it again; follow the service logs and run Recovery: Status later.': 367,
+
+  // Recovery: finish
+  'Core Lightning reconnects to its peers. Only finish once Recovery: Status shows every channel resolved and the wallet in agreement with the backend.': 368,
+  'Finish Although Not Ready': 369,
+  'Leave recovery mode even though a channel is still open or unresolved, the wallet still disagrees with the backend, or neither can be checked because Core Lightning is not running.': 370,
+  'Refused: Core Lightning is not answering, so the wallet and the channels cannot be checked. Start it, or turn on "Finish Although Not Ready".': 371,
+  'Refused: ${count} channel(s) are open or not fully resolved (${states}). Finishing puts the node back online, where a peer on this chain can act on an open channel, and coins still in a channel are not covered by Recovery: Split Coins. Wait until Recovery: Status shows them resolved, or turn on "Finish Although Not Ready".': 372,
+  'Refused: the wallet disagrees with the backend on ${count} output(s). Run Recovery: Status, then Recovery: Repair Wallet, or turn on "Finish Although Not Ready".': 373,
 } as const
 
 /**

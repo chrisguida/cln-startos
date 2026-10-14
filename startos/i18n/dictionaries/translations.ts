@@ -370,6 +370,14 @@ export default {
     365: 'Salidas comprobadas',
     366: 'Sigue en ejecución',
     367: 'SIGUE EN EJECUCIÓN: ${what} no ha respondido dentro del tiempo que espera esta acción. No ha fallado: Core Lightning sigue trabajando en ello. No lo inicie de nuevo; siga los registros del servicio y ejecute Recuperación: Estado más tarde.',
+
+    // Recovery: finish
+    368: 'Core Lightning se vuelve a conectar a sus pares. Finalice solo cuando Recuperación: Estado muestre todos los canales resueltos y el monedero en concordancia con el backend.',
+    369: 'Finalizar aunque no esté listo',
+    370: 'Salir del modo de recuperación aunque un canal siga abierto o sin resolver, el monedero siga sin coincidir con el backend, o ninguna de las dos cosas pueda comprobarse porque Core Lightning no está en ejecución.',
+    371: 'Rechazado: Core Lightning no responde, por lo que no se pueden comprobar el monedero ni los canales. Inícielo o active "Finalizar aunque no esté listo".',
+    372: 'RECHAZADO: ${count} canal(es) están abiertos o no se han resuelto por completo (${states}). Finalizar vuelve a conectar el nodo, y entonces un par en esta cadena puede actuar sobre un canal abierto; además, las monedas que siguen en un canal no quedan cubiertas por Recuperación: Separar monedas. Espere hasta que Recuperación: Estado los muestre resueltos, o active «Finalizar aunque no esté listo».',
+    373: 'Rechazado: el monedero no coincide con el backend en ${count} salida(s). Ejecute Recuperación: Estado y después Recuperación: Reparar monedero, o active "Finalizar aunque no esté listo".',
   },
   de_DE: {
     0: 'Core Lightning wird gestartet!',
@@ -740,6 +748,14 @@ export default {
     365: 'Geprüfte Outputs',
     366: 'Läuft noch',
     367: 'LÄUFT NOCH: ${what} hat nicht innerhalb der Zeit geantwortet, die diese Aktion wartet. Der Vorgang ist nicht fehlgeschlagen: Core Lightning arbeitet noch daran. Starten Sie ihn nicht erneut; verfolgen Sie die Logs des Dienstes und führen Sie später Wiederherstellung: Status aus.',
+
+    // Recovery: finish
+    368: 'Core Lightning verbindet sich wieder mit seinen Peers. Schließen Sie erst ab, wenn Wiederherstellung: Status jeden Kanal als abgewickelt anzeigt und das Wallet mit dem Backend übereinstimmt.',
+    369: 'Abschließen, obwohl nicht bereit',
+    370: 'Den Wiederherstellungsmodus verlassen, obwohl ein Kanal noch offen oder nicht abgewickelt ist, das Wallet noch nicht mit dem Backend übereinstimmt oder beides nicht geprüft werden kann, weil Core Lightning nicht läuft.',
+    371: 'Abgelehnt: Core Lightning antwortet nicht, daher können das Wallet und die Kanäle nicht geprüft werden. Starten Sie es, oder aktivieren Sie "Abschließen, obwohl nicht bereit".',
+    372: 'ABGELEHNT: ${count} Kanal/Kanäle sind offen oder nicht vollständig abgewickelt (${states}). Abschließen bringt den Knoten wieder online, wo ein Peer auf dieser Kette auf einen offenen Kanal einwirken kann, und Coins, die noch in einem Kanal liegen, werden von Wiederherstellung: Coins aufteilen nicht erfasst. Warten Sie, bis Wiederherstellung: Status sie als abgewickelt anzeigt, oder aktivieren Sie „Abschließen, obwohl nicht bereit“.',
+    373: 'Abgelehnt: Das Wallet weicht bei ${count} Output(s) vom Backend ab. Führen Sie Wiederherstellung: Status und danach Wiederherstellung: Wallet reparieren aus, oder aktivieren Sie "Abschließen, obwohl nicht bereit".',
   },
   pl_PL: {
     0: 'Uruchamianie Core Lightning!',
@@ -1110,6 +1126,14 @@ export default {
     365: 'Sprawdzone wyjścia',
     366: 'Nadal trwa',
     367: 'NADAL TRWA: ${what} – brak odpowiedzi w czasie, przez który ta akcja czeka. Operacja nie zakończyła się niepowodzeniem: Core Lightning nadal nad nią pracuje. Nie należy uruchamiać jej ponownie; należy śledzić logi usługi i później uruchomić Odzyskiwanie: Stan.',
+
+    // Recovery: finish
+    368: 'Core Lightning ponownie łączy się z węzłami partnerskimi. Zakończyć należy dopiero wtedy, gdy Odzyskiwanie: Stan pokaże wszystkie kanały jako rozliczone, a portfel jako zgodny z backendem.',
+    369: 'Zakończ mimo braku gotowości',
+    370: 'Wyjście z trybu odzyskiwania, mimo że kanał jest nadal otwarty lub nierozliczony, portfel nadal nie jest zgodny z backendem albo żadnej z tych rzeczy nie można sprawdzić, ponieważ Core Lightning nie jest uruchomiony.',
+    371: 'Odmowa: Core Lightning nie odpowiada, więc nie można sprawdzić portfela ani kanałów. Należy go uruchomić albo włączyć "Zakończ mimo braku gotowości".',
+    372: 'ODMOWA: ${count} kanał(ów) jest otwartych lub nie w pełni rozliczonych (${states}). Zakończenie przywraca węzeł do sieci, gdzie węzeł partnerski na tym łańcuchu może działać na otwartym kanale, a monety pozostające w kanale nie są objęte akcją Odzyskiwanie: Rozdziel monety. Poczekaj, aż Odzyskiwanie: Stan pokaże je jako rozliczone, lub włącz „Zakończ mimo braku gotowości”.',
+    373: 'Odmowa: portfel nie zgadza się z backendem; liczba niezgodnych wyjść: ${count}. Należy uruchomić Odzyskiwanie: Stan, następnie Odzyskiwanie: Napraw portfel, albo włączyć "Zakończ mimo braku gotowości".',
   },
   fr_FR: {
     0: 'Démarrage de Core Lightning !',
@@ -1480,5 +1504,13 @@ export default {
     365: 'Sorties vérifiées',
     366: 'Toujours en cours',
     367: "TOUJOURS EN COURS : ${what} n'a pas répondu dans le délai d'attente de cette action. L'opération n'a pas échoué : Core Lightning y travaille encore. Ne la relancez pas ; suivez les journaux du service et exécutez Récupération : État plus tard.",
+
+    // Recovery: finish
+    368: 'Core Lightning se reconnecte à ses pairs. Ne terminez que lorsque Récupération : État indique que chaque canal est résolu et que le portefeuille concorde avec le backend.',
+    369: 'Terminer bien que non prêt',
+    370: "Quitter le mode de récupération bien qu'un canal soit encore ouvert ou non résolu, que le portefeuille ne concorde toujours pas avec le backend, ou que ni l'un ni l'autre ne puisse être vérifié parce que Core Lightning n'est pas en cours d'exécution.",
+    371: 'Refusé : Core Lightning ne répond pas, le portefeuille et les canaux ne peuvent donc pas être vérifiés. Démarrez-le, ou activez "Terminer bien que non prêt".',
+    372: 'REFUSÉ : ${count} canal/canaux sont ouverts ou pas entièrement résolus (${states}). Terminer remet le nœud en ligne, où un pair sur cette chaîne peut agir sur un canal ouvert, et les pièces encore dans un canal ne sont pas couvertes par Récupération : Séparer les pièces. Attendez que Récupération : État les indique comme résolus, ou activez « Terminer bien que non prêt ».',
+    373: 'Refusé : le portefeuille est en désaccord avec le backend sur ${count} sortie(s). Exécutez Récupération : État, puis Récupération : Réparer le portefeuille, ou activez "Terminer bien que non prêt".',
   },
 } satisfies Record<string, LangDict>

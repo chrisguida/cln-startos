@@ -1,7 +1,9 @@
 import { T } from '@start9labs/start-sdk'
 import { storeJson } from '../../fileModels/store.json'
 import { i18n } from '../../i18n'
+import { isResolved, PeerChannel } from '../../recovery/node'
 import { walletDrift } from '../../recovery/replay'
+import { literal } from '../../recovery/report'
 import { audit } from '../../recovery/snapshot'
 import { withTools } from '../../recovery/tools'
 import { sdk } from '../../sdk'
@@ -17,7 +19,7 @@ export const recoveryFinish = sdk.Action.withInput(
       'Leaves recovery mode: turns off offline and developer mode, drops a rescan that has not run yet, deletes the gossip store gathered on the other chain, and restarts Core Lightning online.',
     ),
     warning: i18n(
-      'Core Lightning reconnects to its peers. Only finish once Recovery: Status shows that the wallet agrees with the backend.',
+      'Core Lightning reconnects to its peers. Only finish once Recovery: Status shows every channel resolved and the wallet in agreement with the backend.',
     ),
     allowedStatuses: 'any',
     group: i18n('Recovery'),
@@ -26,9 +28,9 @@ export const recoveryFinish = sdk.Action.withInput(
 
   InputSpec.of({
     force: Value.toggle({
-      name: i18n('Finish Although The Wallet Disagrees'),
+      name: i18n('Finish Although Not Ready'),
       description: i18n(
-        'Leave recovery mode even though the wallet still disagrees with the backend, or cannot be checked because Core Lightning is not running.',
+        'Leave recovery mode even though a channel is still open or unresolved, the wallet still disagrees with the backend, or neither can be checked because Core Lightning is not running.',
       ),
       default: false,
     }),
@@ -47,23 +49,47 @@ export const recoveryFinish = sdk.Action.withInput(
       }
     }
     if (!input.force) {
-      const drift = await withTools(
+      const check = await withTools(
         effects,
         'recovery-finish',
         async (tools) =>
-          (await tools.lightningUp()) ? walletDrift(tools) : null,
+          (await tools.lightningUp())
+            ? {
+                drift: await walletDrift(tools),
+                channels: (
+                  await tools.lightning<{ channels: PeerChannel[] }>(
+                    'listpeerchannels',
+                  )
+                ).channels,
+              }
+            : null,
       )
-      if (!drift) {
+      if (!check) {
         throw new Error(
           i18n(
-            'Refused: Core Lightning is not answering, so the wallet cannot be checked against the backend. Start it, or turn on "Finish Although The Wallet Disagrees".',
+            'Refused: Core Lightning is not answering, so the wallet and the channels cannot be checked. Start it, or turn on "Finish Although Not Ready".',
           ),
         )
       }
+      const unresolved = check.channels.filter((c) => !isResolved(c))
+      if (unresolved.length) {
+        throw new Error(
+          i18n(
+            'Refused: ${count} channel(s) are open or not fully resolved (${states}). Finishing puts the node back online, where a peer on this chain can act on an open channel, and coins still in a channel are not covered by Recovery: Split Coins. Wait until Recovery: Status shows them resolved, or turn on "Finish Although Not Ready".',
+            {
+              count: String(unresolved.length),
+              states: literal(
+                [...new Set(unresolved.map((c) => c.state))].join(', '),
+              ),
+            },
+          ),
+        )
+      }
+      const { drift } = check
       if (drift.phantom.length || drift.restorable.length) {
         throw new Error(
           i18n(
-            'Refused: the wallet disagrees with the backend on ${count} output(s). Run Recovery: Status, then Recovery: Repair Wallet, or turn on "Finish Although The Wallet Disagrees".',
+            'Refused: the wallet disagrees with the backend on ${count} output(s). Run Recovery: Status, then Recovery: Repair Wallet, or turn on "Finish Although Not Ready".',
             { count: String(drift.phantom.length + drift.restorable.length) },
           ),
         )
