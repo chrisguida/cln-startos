@@ -15,7 +15,7 @@ import {
   row,
 } from '../../recovery/report'
 import { audit, refreshFinal, saveRawTx } from '../../recovery/snapshot'
-import { Tools, withTools } from '../../recovery/tools'
+import { CliError, Tools, withTools } from '../../recovery/tools'
 import { sdk } from '../../sdk'
 
 const { InputSpec, Value } = sdk
@@ -38,12 +38,13 @@ const closeChannel = async (
       { id: channel.channel_id, unilateraltimeout: timeout, feerange },
       (timeout + 120) * 1000,
     )
-    return { channel, res, error: null }
+    return { channel, res, error: null, timedOut: false }
   } catch (e) {
     return {
       channel,
       res: null,
       error: e instanceof Error ? e.message : String(e),
+      timedOut: e instanceof CliError && e.timedOut,
     }
   }
 }
@@ -151,10 +152,21 @@ export const recoveryCloseAll = sdk.Action.withInput(
       )
 
       const rows: T.ActionResultMember[] = []
-      for (const { channel, res, error } of results) {
+      for (const { channel, res, error, timedOut } of results) {
         const name = `${i18n('Channel')} ${shortId(channel.channel_id)}`
         if (!res) {
-          rows.push(group(name, [row(i18n('Error'), error ?? '-')]))
+          rows.push(
+            group(name, [
+              timedOut
+                ? row(
+                    i18n('Still running'),
+                    i18n(
+                      'No answer yet. The close has not failed: Core Lightning is still working on it. Run Recovery: Status later.',
+                    ),
+                  )
+                : row(i18n('Error'), error ?? '-'),
+            ]),
+          )
           continue
         }
         const txids = res.txids ?? []
@@ -181,7 +193,7 @@ export const recoveryCloseAll = sdk.Action.withInput(
         })),
       )
 
-      const failed = results.filter((r) => !r.res).length
+      const failed = results.filter((r) => !r.res && !r.timedOut).length
       const unilateral = results.filter(
         (r) => r.res?.type === 'unilateral',
       ).length

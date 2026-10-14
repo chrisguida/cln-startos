@@ -7,9 +7,15 @@ import {
   perkb,
 } from '../../recovery/fees'
 import { isResolved, walletTotals } from '../../recovery/node'
-import { chainRecord, literal, readState, row } from '../../recovery/report'
+import {
+  chainRecord,
+  literal,
+  readState,
+  row,
+  stillRunning,
+} from '../../recovery/report'
 import { audit, refreshFinal, saveRawTx } from '../../recovery/snapshot'
-import { withTools } from '../../recovery/tools'
+import { slow, withTools } from '../../recovery/tools'
 import { sdk } from '../../sdk'
 
 const { InputSpec, Value } = sdk
@@ -104,11 +110,18 @@ export const recoveryWithdraw = sdk.Action.withInput(
         )
       }
       await audit('withdraw', { destination, feerate: perkb(input.feerate) })
-      const res = await tools.lightning<{ tx: string; txid: string }>(
-        'withdraw',
-        { destination, satoshi: 'all', feerate: perkb(input.feerate) },
-        300_000,
-      )
+      let res: { tx: string; txid: string }
+      try {
+        res = await tools.lightning<{ tx: string; txid: string }>(
+          'withdraw',
+          { destination, satoshi: 'all', feerate: perkb(input.feerate) },
+          slow,
+        )
+      } catch (e) {
+        const running = stillRunning('withdraw', e)
+        if (running) return running
+        throw e
+      }
       const saved = await saveRawTx('withdraw', res.txid, res.tx)
       const fee = await mempoolFee(tools, res.txid)
       const lists = await refreshFinal(tools, chainRecord(tools, state))

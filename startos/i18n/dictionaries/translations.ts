@@ -446,6 +446,9 @@ export default {
     // Recovery: still running
     446: 'Sigue en ejecución',
     447: 'SIGUE EN EJECUCIÓN: ${what} no ha respondido dentro del tiempo que espera esta acción. No ha fallado: Core Lightning sigue trabajando en ello. No lo inicie de nuevo; siga los registros del servicio y ejecute Recuperación: Estado más tarde.',
+
+    // Recovery: still running
+    448: 'Todavía sin respuesta. El cierre no ha fallado: Core Lightning sigue trabajando en él. Ejecute Recuperación: Estado más tarde.',
   },
   de_DE: {
     0: 'Core Lightning wird gestartet!',
@@ -892,6 +895,9 @@ export default {
     // Recovery: still running
     446: 'Läuft noch',
     447: 'LÄUFT NOCH: ${what} hat nicht innerhalb der Zeit geantwortet, die diese Aktion wartet. Der Vorgang ist nicht fehlgeschlagen: Core Lightning arbeitet noch daran. Starten Sie ihn nicht erneut; verfolgen Sie die Logs des Dienstes und führen Sie später Wiederherstellung: Status aus.',
+
+    // Recovery: still running
+    448: 'Noch keine Antwort. Die Schließung ist nicht fehlgeschlagen: Core Lightning arbeitet noch daran. Führen Sie später Wiederherstellung: Status aus.',
   },
   pl_PL: {
     0: 'Uruchamianie Core Lightning!',
@@ -1338,6 +1344,9 @@ export default {
     // Recovery: still running
     446: 'Nadal trwa',
     447: 'NADAL TRWA: ${what} – brak odpowiedzi w czasie, przez który ta akcja czeka. Operacja nie zakończyła się niepowodzeniem: Core Lightning nadal nad nią pracuje. Nie należy uruchamiać jej ponownie; należy śledzić logi usługi i później uruchomić Odzyskiwanie: Stan.',
+
+    // Recovery: still running
+    448: 'Brak odpowiedzi do tej pory. Zamknięcie nie zakończyło się niepowodzeniem: Core Lightning nadal nad nim pracuje. Później należy uruchomić Odzyskiwanie: Stan.',
   },
   fr_FR: {
     0: 'Démarrage de Core Lightning !',
@@ -1784,5 +1793,8 @@ export default {
     // Recovery: still running
     446: 'Toujours en cours',
     447: "TOUJOURS EN COURS : ${what} n'a pas répondu dans le délai d'attente de cette action. L'opération n'a pas échoué : Core Lightning y travaille encore. Ne la relancez pas ; suivez les journaux du service et exécutez Récupération : État plus tard.",
+
+    // Recovery: still running
+    448: "Pas encore de réponse. La fermeture n'a pas échoué : Core Lightning y travaille encore. Exécutez Récupération : État plus tard.",
   },
 } satisfies Record<string, LangDict>

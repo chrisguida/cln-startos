@@ -480,6 +480,9 @@ const dict = {
   // Recovery: still running
   'Still running': 446,
   'STILL RUNNING: ${what} has not answered within the time this action waits. It has not failed: Core Lightning is still working on it. Do not start it again; follow the service logs and run Recovery: Status later.': 447,
+
+  // Recovery: still running
+  'No answer yet. The close has not failed: Core Lightning is still working on it. Run Recovery: Status later.': 448,
 } as const
 
 /**
