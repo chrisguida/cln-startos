@@ -14,6 +14,7 @@ import { nodeInfo } from './nodeInfo'
 import { displaySeed } from './displaySeed'
 import { recoveryRepair } from './recovery/repair'
 import { recoveryReplay } from './recovery/replay'
+import { recoverySplit } from './recovery/split'
 import { recoveryStatus } from './recovery/status'
 
 export const actions = sdk.Actions.of()
@@ -33,5 +34,6 @@ export const actions = sdk.Actions.of()
   .addAction(recoveryStatus)
   .addAction(recoveryReplay)
   .addAction(recoveryRepair)
+  .addAction(recoverySplit)
 
 // @TODO generate-lnlink
