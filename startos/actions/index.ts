@@ -19,6 +19,7 @@ import { recoveryCloseAll } from './recovery/closeAll'
 import { recoveryOffline } from './recovery/offline'
 import { recoverySnapshot } from './recovery/snapshot'
 import { recoveryStatus } from './recovery/status'
+import { recoveryWithdraw } from './recovery/withdraw'
 import {
   clbossIgnoreOnchain,
   clbossNoticeOnchain,
@@ -51,5 +52,6 @@ export const actions = sdk.Actions.of()
   .addAction(recoverySnapshot)
   .addAction(recoveryOffline)
   .addAction(recoveryCloseAll)
+  .addAction(recoveryWithdraw)
 
 // @TODO generate-lnlink

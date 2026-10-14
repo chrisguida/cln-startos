@@ -457,6 +457,25 @@ const dict = {
   '${closed} of ${total} channel(s) closing: ${unilateral} unilaterally, ${failed} failed. Feerange offered: ${range}.': 426,
   'Wait until Recovery: Status shows every channel resolved (after a unilateral close that includes the CSV delay and the sweep), then take a Recovery: Snapshot so that recovery/final holds every close and sweep transaction.': 427,
   'Refused: ${rate} sat per 1000 vbytes is below the minimum of ${min}. A transaction below 1 sat per vbyte is not relayed by Bitcoin Knots and could not be replayed on the other chain.': 428,
+
+  // Recovery: withdraw
+  'Recovery: Withdraw to SHA256d Wallet': 429,
+  'Sends the whole on-chain balance to one address on the chain this node follows, and saves the raw transaction in recovery/final.': 430,
+  'The transaction is valid on both chains and can be replayed on the other one by anybody. Whoever controls the address receives the coins on both chains: use an address of a wallet whose keys you hold, never an exchange or custodial deposit address.': 431,
+  'Destination Address': 432,
+  'An address of a wallet whose keys you hold. The coins arrive there on this chain, and on the other chain too if the transaction is replayed.': 433,
+  Feerate: 434,
+  'Fee for the withdrawal. It must pay at least 1 sat per vbyte by itself to be replayed on the other chain; values below 1100 are refused.': 435,
+  'I hold the keys of this address': 436,
+  'Required. The transaction will be replayable on the other chain, so the address must be self-custodied.': 437,
+  'Withdraw With Unresolved Channels': 438,
+  'Withdraw although a channel is still open or its close is not fully resolved. Funds still in channels are not included, and 25,000 sat may be held back.': 439,
+  'Refused: confirm that you hold the keys of the destination address. The transaction can be replayed on the other chain.': 440,
+  'Refused: ${count} channel(s) are open or not fully resolved (${states}). Wait, or turn on "Withdraw With Unresolved Channels".': 441,
+  'Withdrawal broadcast': 442,
+  'Withdrawal ${txid} broadcast to ${destination}. The raw transaction is saved as ${file}.': 443,
+  '${amount} sat remain in the wallet. Core Lightning holds back ${reserve} sat for fee-bumping while a channel with anchor outputs is unresolved; withdraw again once every channel has been forgotten.': 444,
+  'Remaining in the wallet': 445,
 } as const
 
 /**
