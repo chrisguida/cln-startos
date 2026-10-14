@@ -1,8 +1,7 @@
 import { IMPOSSIBLE, T, VersionInfo } from '@start9labs/start-sdk'
 import { readFile } from 'fs/promises'
 import { clnConfig, dropClboss } from '../fileModels/config'
-import { storeJson } from '../fileModels/store.json'
-import { heightsFor } from '../recovery/chain'
+import { enterRecoveryMode } from '../recovery/mode'
 
 //CLBOSS is no longer shipped, so a config that loaded it names a binary that is not
 //there and lightningd exits at startup. Every edge into this version runs this.
@@ -16,7 +15,7 @@ const removeClboss = async ({ effects }: { effects: T.Effects }) => {
   })
 }
 
-// Arriving from the stock build: its database may have followed the SHA256d
+// Arriving from the stock build or its recovery flavor: the database may have followed the SHA256d
 // chain past the split, and lightningd does not notice that on its own. Never
 // start on such data without recovery mode: no peers (offline), the dev-
 // commands the repair needs (developer), and one rescan from below the split.
@@ -35,9 +34,8 @@ const enterRecovery = async ({ effects }: { effects: T.Effects }) => {
   )
   const conf = await clnConfig.read().once()
   const network = conf?.raw?.network ?? 'bitcoin'
-  let activation = conf?.raw?.['dev-blake2b-activation-height']
+  const activation = conf?.raw?.['dev-blake2b-activation-height']
   if (network === 'regtest' && !activation && typeof stockHeight === 'number') {
-    activation = stockHeight
     await clnConfig.merge(effects, {
       network: {
         selection: 'regtest',
@@ -46,17 +44,11 @@ const enterRecovery = async ({ effects }: { effects: T.Effects }) => {
     })
   }
 
-  const heights = heightsFor(network, activation)
-  await storeJson.merge(effects, {
-    recovery: true,
-    offline: true,
-    developer: true,
-    ...(heights ? { rescan: -heights.rescanFrom } : {}),
-  })
+  await enterRecoveryMode(effects)
 }
 
 export const current = VersionInfo.of({
-  version: '#blake:26.6.9:0',
+  version: '#blake:26.6.9:1',
   releaseNotes: {
     en_US: `Core Lightning v26.06.9-blake2b.7, based on upstream v26.06.9. We strongly recommend updating.
 
@@ -80,6 +72,10 @@ Your node's configuration does not change.`,
       //Arriving from the unflavored build, or from the header-only flavor. Both are Core Lightning
       //v26.06.7; lightningd upgrades the wallet database on its first start.
       ['^26']: {
+        up: enterRecovery,
+      },
+      //Arriving from the recovery flavor of the stock build, which exists to be left for this one.
+      ['>=#recovery:26.6.9:0 <#recovery:26.6.10:0']: {
         up: enterRecovery,
       },
       //Arriving from the first blake flavor, whose web interface used commando.
