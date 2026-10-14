@@ -1,5 +1,8 @@
 import { IMPOSSIBLE, T, VersionInfo } from '@start9labs/start-sdk'
+import { readFile } from 'fs/promises'
 import { clnConfig, dropClboss } from '../fileModels/config'
+import { storeJson } from '../fileModels/store.json'
+import { heightsFor } from '../recovery/chain'
 
 //CLBOSS is no longer shipped, so a config that loaded it names a binary that is not
 //there and lightningd exits at startup. Every edge into this version runs this.
@@ -10,6 +13,45 @@ const removeClboss = async ({ effects }: { effects: T.Effects }) => {
   )
   await clnConfig.merge(effects, {
     raw: { ...(form?.raw ?? {}), ...dropClboss(plugins) },
+  })
+}
+
+// Arriving from the stock build: its database may have followed the SHA256d
+// chain past the split, and lightningd does not notice that on its own. Never
+// start on such data without recovery mode: no peers (offline), the dev-
+// commands the repair needs (developer), and one rescan from below the split.
+// Recovery: Finish clears all of it.
+const enterRecovery = async ({ effects }: { effects: T.Effects }) => {
+  await removeClboss({ effects })
+
+  // The stock build keeps the regtest test activation height in store.json,
+  // which this build's model would drop: read the file as it is.
+  const stockHeight: unknown = await readFile(
+    '/media/startos/volumes/main/store.json',
+    'utf-8',
+  ).then(
+    (s) => JSON.parse(s).blake2bActivationHeight,
+    () => undefined,
+  )
+  const conf = await clnConfig.read().once()
+  const network = conf?.raw?.network ?? 'bitcoin'
+  let activation = conf?.raw?.['dev-blake2b-activation-height']
+  if (network === 'regtest' && !activation && typeof stockHeight === 'number') {
+    activation = stockHeight
+    await clnConfig.merge(effects, {
+      network: {
+        selection: 'regtest',
+        value: { 'blake2b-activation-height': stockHeight },
+      },
+    })
+  }
+
+  const heights = heightsFor(network, activation)
+  await storeJson.merge(effects, {
+    recovery: true,
+    offline: true,
+    developer: true,
+    ...(heights ? { rescan: -heights.rescanFrom } : {}),
   })
 }
 
@@ -38,7 +80,7 @@ Your node's configuration does not change.`,
       //Arriving from the unflavored build, or from the header-only flavor. Both are Core Lightning
       //v26.06.7; lightningd upgrades the wallet database on its first start.
       ['^26']: {
-        up: removeClboss,
+        up: enterRecovery,
       },
       //Arriving from the first blake flavor, whose web interface used commando.
       ['#blake:26.6.7:1']: {

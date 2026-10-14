@@ -1,4 +1,5 @@
 import { T } from '@start9labs/start-sdk'
+import { manifest as bitcoinManifest } from 'bitcoin-core-startos/startos/manifest'
 import {
   rpcHostId as btcRpcHostId,
   rpcPort as btcRpcPort,
@@ -27,23 +28,33 @@ export const mainMounts = sdk.Mounts.of().mountVolume({
   readonly: false,
 })
 
+/** The main volume plus bitcoind's data directory (for its RPC cookie). */
+export const mountsWithBitcoin = () =>
+  mainMounts.mountDependency<typeof bitcoinManifest>({
+    dependencyId: 'bitcoind',
+    mountpoint: bitcoinDataDir,
+    subpath: null,
+    readonly: true,
+    volumeId: 'main',
+  })
+
 /**
  * bitcoind's RPC bridge address, resolved through `sdk.host.getBridgeAddress` and
  * split into the `{ host, port }` pair lightningd's config, teos.toml, and the
  * sync health check consume. `.const()` stays churn-free: bitcoind's assigned
  * RPC port persists across its updates/restarts, so CLN restarts only if
  * bitcoind is (re)installed on a new port. `null` while bitcoind's binding is
- * absent, so callers omit the address rather than writing a placeholder.
+ * absent, so callers omit the address rather than writing a placeholder. Pass
+ * `watch: false` from an action, which reads once.
  */
-export const bitcoindRpcBridge = async (effects: T.Effects) => {
-  const addr = await sdk.host
-    .getBridgeAddress(effects, {
-      packageId: 'bitcoind',
-      hostId: btcRpcHostId,
-      internalPort: btcRpcPort,
-      ssl: false,
-    })
-    .const()
+export const bitcoindRpcBridge = async (effects: T.Effects, watch = true) => {
+  const bridge = sdk.host.getBridgeAddress(effects, {
+    packageId: 'bitcoind',
+    hostId: btcRpcHostId,
+    internalPort: btcRpcPort,
+    ssl: false,
+  })
+  const addr = await (watch ? bridge.const() : bridge.once())
   if (!addr) return null
   const [host, port] = addr.split(':')
   return { host, port: Number(port) }

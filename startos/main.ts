@@ -1,6 +1,5 @@
 import { FileHelper } from '@start9labs/start-sdk'
-import { manifest as bitcoinManifest } from 'bitcoin-core-startos/startos/manifest'
-import { readFile, writeFile } from 'fs/promises'
+import { readFile, rm, writeFile } from 'fs/promises'
 import {
   parseTowerUri,
   towerKey,
@@ -13,11 +12,11 @@ import { storeJson } from './fileModels/store.json'
 import { i18n } from './i18n'
 import { sdk } from './sdk'
 import {
-  bitcoinDataDir,
   bitcoindRpcBridge,
   clnrestPort,
   grpcPort,
   mainMounts,
+  mountsWithBitcoin,
   rootDir,
   uiPort,
   wsPort,
@@ -53,6 +52,27 @@ export const main = sdk.setupMain(async ({ effects }) => {
     lightningdArgs.push(`--rescan=${store.rescan}`)
   }
 
+  // Recovery mode (see versions/current.ts and the Recovery actions). Unlike
+  // rescan these are standing flags, cleared by Recovery: Finish. The regtest
+  // activation height already puts `developer` in the config file.
+  if (store.offline) {
+    lightningdArgs.push('--offline')
+  }
+  if (store.developer && !conf?.raw?.developer) {
+    lightningdArgs.push('--developer')
+  }
+
+  // One-shot from Recovery: Finish. The file is gone once this returns, so
+  // the flag is cleared here; the store watch below is registered after this
+  // write and ignores the clear anyway.
+  if (store.wipeGossip) {
+    await rm(
+      `/media/startos/volumes/main/${conf?.raw?.network ?? 'bitcoin'}/gossip_store`,
+      { force: true },
+    )
+    await storeJson.merge(effects, { wipeGossip: undefined })
+  }
+
   // `rescan` and `restore` are one-shot request flags (rescan set by the
   // Rescan Blockchain action, restore by the post-restore hook in backups.ts).
   // They are deliberately NOT cleared here: a session where lightningd never
@@ -75,13 +95,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
   const lightningSub = sdk.SubContainer.of(
     effects,
     { imageId: 'lightning' },
-    mainMounts.mountDependency<typeof bitcoinManifest>({
-      dependencyId: 'bitcoind',
-      mountpoint: bitcoinDataDir,
-      subpath: null,
-      readonly: true,
-      volumeId: 'main',
-    }),
+    mountsWithBitcoin(),
     'lightning-sub',
   )
 
@@ -325,6 +339,10 @@ export const main = sdk.setupMain(async ({ effects }) => {
           JSON.stringify(next?.watchtowerClients) &&
         JSON.stringify(prev?.customExternalHosts) ===
           JSON.stringify(next?.customExternalHosts) &&
+        prev?.offline === next?.offline &&
+        prev?.developer === next?.developer &&
+        (next?.wipeGossip === undefined ||
+          prev?.wipeGossip === next?.wipeGossip) &&
         (next?.rescan === undefined || prev?.rescan === next?.rescan) &&
         (next?.restore === undefined || prev?.restore === next?.restore),
     )
