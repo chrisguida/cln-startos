@@ -342,6 +342,22 @@ const dict = {
   'SKIPPED: ${count} transaction(s) from after the split are not channel transactions (for example a wallet withdrawal) and are never replayed by this action.': 311,
   'Channel transactions': 312,
   Skipped: 313,
+
+  // Recovery: repair
+  'Recovery: Repair Wallet': 314,
+  'Checks every output the wallet has ever had against the backend (dev-rescan-outputs) and corrects it: coins spent on the other chain only become spendable again, coins that only exist on the other chain disappear. Run it after the replayed transactions have confirmed. It can be run again.': 315,
+  'Run this only against the backend whose chain you want this wallet to follow from now on. On a large wallet it can take a long time; leave the window open.': 316,
+  'Repair Although Replays Are Pending': 317,
+  'Repair even though a channel close is still unreplayed or unconfirmed on this chain. The outputs of such transactions are then marked spent, and this action must be run again after they confirm.': 318,
+  'Refused: recovery mode is off. This action is only for a node that arrived from the stock build and has not run Recovery: Finish.': 319,
+  'Core Lightning is not answering.': 320,
+  'Refused: Core Lightning is at height ${height} and the backend at ${tip}. Wait until it has caught up (the Synced health check), then run this action again.': 321,
+  'WARNING: ${count} channel transaction(s) from the other chain are not in a block on this chain yet: ${list}. Their outputs are marked spent by a repair done now. Run Recovery: Replay Closes, wait for confirmations, and repair again.': 322,
+  'WARNING: ${count} closed channel(s) still have their funding output unspent on this backend. Run Recovery: Replay Closes first.': 323,
+  'Refused: replays are pending.': 324,
+  'To repair anyway, turn on "Repair Although Replays Are Pending".': 325,
+  'Wallet repaired': 326,
+  '${checked} output(s) checked against the backend, ${changed} changed. Spendable balance: ${balance} sat (was ${was} sat).': 327,
 } as const
 
 /**
