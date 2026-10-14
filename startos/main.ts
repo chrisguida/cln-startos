@@ -48,10 +48,6 @@ export const main = sdk.setupMain(async ({ effects }) => {
 
   const lightningdArgs: string[] = ['--database-upgrade=true']
 
-  if (store.rescan) {
-    lightningdArgs.push(`--rescan=${store.rescan}`)
-  }
-
   // Recovery mode (see versions/current.ts and the Recovery actions). Unlike
   // rescan these are standing flags, cleared by Recovery: Finish. The regtest
   // activation height already puts `developer` in the config file.
@@ -98,6 +94,41 @@ export const main = sdk.setupMain(async ({ effects }) => {
     mountsWithBitcoin(),
     'lightning-sub',
   )
+
+  // lightningd takes a negative --rescan as "start at this height" even when
+  // its database ends below it, and then never reads the blocks in between: a
+  // node that stopped at 208 and is told --rescan=-260 misses a deposit at 209
+  // (seen on regtest). Recovery mode asks for a rescan from below the split
+  // without knowing where the database ends, so that request is dropped here
+  // when the database has not reached it; the default rescan from its own tip
+  // then covers everything. consume-flags still clears the request.
+  let rescan = store.rescan
+  if (store.recovery && rescan && rescan < 0) {
+    const tip = await lightningSub
+      .exec(
+        [
+          'sqlite3',
+          '-readonly',
+          `${rootDir}/${conf?.raw?.network ?? 'bitcoin'}/lightningd.sqlite3`,
+          'SELECT max(height) FROM blocks',
+        ],
+        undefined,
+        60_000,
+      )
+      .then(
+        (res) => (res.exitCode === 0 ? parseInt(String(res.stdout), 10) : NaN),
+        () => NaN,
+      )
+    if (tip < -rescan) {
+      console.info(
+        `Recovery: the database ends at height ${tip}, below the rescan height ${-rescan}; not passing --rescan`,
+      )
+      rescan = undefined
+    }
+  }
+  if (rescan) {
+    lightningdArgs.push(`--rescan=${rescan}`)
+  }
 
   // Restart only when bitcoind writes a replacement cookie — an absent cookie
   // means bitcoind is down, and stopping lightningd then hangs its shutdown.
