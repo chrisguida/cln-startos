@@ -387,6 +387,18 @@ const dict = {
   'Core Lightning kept ${reserve} sat in this wallet as a change output: its reserve for fee-bumping while a channel with anchor outputs is unresolved. That output was made by the split transaction, so it is split too; it becomes spendable once every channel has been forgotten.': 352,
   '${amount} sat were NOT moved and are still spendable on both chains. Run this action again.': 353,
   'Wait for the transactions to confirm before Recovery: Finish. Until then the same coins can still be moved on the other chain with an old transaction.': 354,
+
+  // Recovery: finish
+  'Recovery: Finish': 355,
+  'Leaves recovery mode: turns off offline and developer mode, drops a rescan that has not run yet, deletes the gossip store gathered on the other chain, and restarts Core Lightning online.': 356,
+  'Core Lightning reconnects to its peers. Only finish once Recovery: Status shows that the wallet agrees with the backend.': 357,
+  'Finish Although The Wallet Disagrees': 358,
+  'Leave recovery mode even though the wallet still disagrees with the backend, or cannot be checked because Core Lightning is not running.': 359,
+  'Nothing to finish': 360,
+  'Refused: Core Lightning is not answering, so the wallet cannot be checked against the backend. Start it, or turn on "Finish Although The Wallet Disagrees".': 361,
+  'Refused: the wallet disagrees with the backend on ${count} output(s). Run Recovery: Status, then Recovery: Repair Wallet, or turn on "Finish Although The Wallet Disagrees".': 362,
+  'Recovery finished': 363,
+  'Recovery mode is off. If Core Lightning is running it restarts now, online, with an empty gossip store; if it is stopped, that happens at its next start.': 364,
 } as const
 
 /**

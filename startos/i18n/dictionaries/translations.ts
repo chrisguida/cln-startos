@@ -353,6 +353,18 @@ export default {
     352: 'Core Lightning conservó ${reserve} sat en este monedero como salida de cambio: su reserva para aumentar comisiones mientras haya un canal con salidas de anclaje sin resolver. Esa salida fue creada por la transacción de división, por lo que también está dividida; será gastable cuando todos los canales hayan sido olvidados.',
     353: '${amount} sat NO se movieron y siguen siendo gastables en ambas cadenas. Ejecute esta acción de nuevo.',
     354: 'Espere a que las transacciones se confirmen antes de Recuperación: Finalizar. Hasta entonces, las mismas monedas todavía pueden moverse en la otra cadena con una transacción antigua.',
+
+    // Recovery: finish
+    355: 'Recuperación: Finalizar',
+    356: 'Sale del modo de recuperación: desactiva el modo sin conexión y el modo de desarrollador, descarta un reescaneo que aún no se haya ejecutado, elimina el almacén de gossip recopilado en la otra cadena y reinicia Core Lightning en línea.',
+    357: 'Core Lightning se vuelve a conectar a sus pares. Finalice solo cuando Recuperación: Estado muestre que el monedero coincide con el backend.',
+    358: 'Finalizar aunque el monedero no coincida',
+    359: 'Salir del modo de recuperación aunque el monedero siga sin coincidir con el backend, o no pueda comprobarse porque Core Lightning no está en ejecución.',
+    360: 'Nada que finalizar',
+    361: 'Rechazado: Core Lightning no responde, por lo que no se puede comprobar el monedero frente al backend. Inícielo o active "Finalizar aunque el monedero no coincida".',
+    362: 'Rechazado: el monedero no coincide con el backend en ${count} salida(s). Ejecute Recuperación: Estado y después Recuperación: Reparar monedero, o active "Finalizar aunque el monedero no coincida".',
+    363: 'Recuperación finalizada',
+    364: 'El modo de recuperación está desactivado. Si Core Lightning está en ejecución, se reinicia ahora, en línea, con un almacén de gossip vacío; si está detenido, esto ocurrirá en su próximo inicio.',
   },
   de_DE: {
     0: 'Core Lightning wird gestartet!',
@@ -706,6 +718,18 @@ export default {
     352: 'Core Lightning hat ${reserve} sat als Wechselgeld-Output in dieser Wallet behalten: seine Reserve für Gebührenerhöhungen, solange ein Kanal mit Anchor-Outputs nicht abgewickelt ist. Dieser Output wurde von der Aufspaltungstransaktion erzeugt und ist daher ebenfalls aufgespalten; er wird ausgebbar, sobald alle Kanäle vergessen wurden.',
     353: '${amount} sat wurden NICHT verschoben und sind weiterhin auf beiden Chains ausgebbar. Führen Sie diese Aktion erneut aus.',
     354: 'Warten Sie vor Wiederherstellung: Abschließen, bis die Transaktionen bestätigt sind. Bis dahin können dieselben Coins auf der anderen Chain noch mit einer alten Transaktion bewegt werden.',
+
+    // Recovery: finish
+    355: 'Wiederherstellung: Abschließen',
+    356: 'Verlässt den Wiederherstellungsmodus: schaltet den Offline- und den Entwicklermodus aus, verwirft einen noch nicht ausgeführten Rescan, löscht den auf der anderen Chain gesammelten Gossip-Speicher und startet Core Lightning online neu.',
+    357: 'Core Lightning verbindet sich wieder mit seinen Peers. Schließen Sie erst ab, wenn Wiederherstellung: Status anzeigt, dass die Wallet mit dem Backend übereinstimmt.',
+    358: 'Abschließen, obwohl das Wallet abweicht',
+    359: 'Den Wiederherstellungsmodus verlassen, obwohl die Wallet noch nicht mit dem Backend übereinstimmt oder nicht geprüft werden kann, weil Core Lightning nicht läuft.',
+    360: 'Nichts abzuschließen',
+    361: 'Abgelehnt: Core Lightning antwortet nicht, daher kann das Wallet nicht mit dem Backend abgeglichen werden. Starten Sie es, oder aktivieren Sie "Abschließen, obwohl das Wallet abweicht".',
+    362: 'Abgelehnt: Das Wallet weicht bei ${count} Output(s) vom Backend ab. Führen Sie Wiederherstellung: Status und danach Wiederherstellung: Wallet reparieren aus, oder aktivieren Sie "Abschließen, obwohl das Wallet abweicht".',
+    363: 'Wiederherstellung abgeschlossen',
+    364: 'Der Wiederherstellungsmodus ist ausgeschaltet. Wenn Core Lightning läuft, wird es jetzt online mit einem leeren Gossip-Speicher neu gestartet; wenn es gestoppt ist, geschieht dies beim nächsten Start.',
   },
   pl_PL: {
     0: 'Uruchamianie Core Lightning!',
@@ -1059,6 +1083,18 @@ export default {
     352: 'Core Lightning zachował ${reserve} sat w tym portfelu jako wyjście reszty: jest to jego rezerwa na podbijanie opłat, dopóki kanał z wyjściami kotwiczącymi pozostaje nierozliczony. To wyjście zostało utworzone przez transakcję podziału, więc również jest podzielone; stanie się możliwe do wydania, gdy wszystkie kanały zostaną zapomniane.',
     353: '${amount} sat NIE zostało przeniesione i nadal można je wydać w obu łańcuchach. Należy uruchomić tę akcję ponownie.',
     354: 'Przed uruchomieniem Odzyskiwanie: Zakończ należy poczekać na potwierdzenie transakcji. Do tego czasu te same monety można nadal przenieść na drugim łańcuchu za pomocą starej transakcji.',
+
+    // Recovery: finish
+    355: 'Odzyskiwanie: Zakończ',
+    356: 'Wychodzi z trybu odzyskiwania: wyłącza tryb offline i tryb deweloperski, anuluje ponowne skanowanie, które jeszcze się nie wykonało, usuwa magazyn gossip zgromadzony w drugim łańcuchu i ponownie uruchamia Core Lightning w trybie online.',
+    357: 'Core Lightning ponownie łączy się z węzłami partnerskimi. Zakończyć należy dopiero wtedy, gdy Odzyskiwanie: Status pokaże, że portfel jest zgodny z backendem.',
+    358: 'Zakończ mimo niezgodności portfela',
+    359: 'Wyjście z trybu odzyskiwania, mimo że portfel nadal nie jest zgodny z backendem lub nie można go sprawdzić, ponieważ Core Lightning nie jest uruchomiony.',
+    360: 'Nie ma nic do zakończenia',
+    361: 'Odmowa: Core Lightning nie odpowiada, więc portfela nie można porównać z backendem. Należy go uruchomić albo włączyć "Zakończ mimo niezgodności portfela".',
+    362: 'Odmowa: portfel nie zgadza się z backendem; liczba niezgodnych wyjść: ${count}. Należy uruchomić Odzyskiwanie: Stan, następnie Odzyskiwanie: Napraw portfel, albo włączyć "Zakończ mimo niezgodności portfela".',
+    363: 'Odzyskiwanie zakończone',
+    364: 'Tryb odzyskiwania jest wyłączony. Jeśli Core Lightning działa, zostanie teraz uruchomiony ponownie, online, z pustym magazynem gossip; jeśli jest zatrzymany, nastąpi to przy następnym uruchomieniu.',
   },
   fr_FR: {
     0: 'Démarrage de Core Lightning !',
@@ -1412,5 +1448,17 @@ export default {
     352: "Core Lightning a conservé ${reserve} sat dans ce portefeuille sous forme de sortie de monnaie : sa réserve pour l'augmentation des frais tant qu'un canal avec sorties d'ancrage n'est pas résolu. Cette sortie a été créée par la transaction de scission, elle est donc scindée elle aussi ; elle deviendra dépensable une fois tous les canaux oubliés.",
     353: "${amount} sat n'ont PAS été déplacés et restent dépensables sur les deux chaînes. Exécutez de nouveau cette action.",
     354: "Attendez que les transactions soient confirmées avant Récupération : Terminer. D'ici là, les mêmes pièces peuvent encore être déplacées sur l'autre chaîne avec une ancienne transaction.",
+
+    // Recovery: finish
+    355: 'Récupération : Terminer',
+    356: "Quitte le mode de récupération : désactive le mode hors ligne et le mode développeur, abandonne un rescan qui n'a pas encore été exécuté, supprime le stockage gossip collecté sur l'autre chaîne et redémarre Core Lightning en ligne.",
+    357: 'Core Lightning se reconnecte à ses pairs. Ne terminez que lorsque Récupération : État indique que le portefeuille concorde avec le backend.',
+    358: 'Terminer bien que le portefeuille soit en désaccord',
+    359: "Quitter le mode de récupération bien que le portefeuille ne concorde toujours pas avec le backend, ou ne puisse pas être vérifié parce que Core Lightning n'est pas en cours d'exécution.",
+    360: 'Rien à terminer',
+    361: 'Refusé : Core Lightning ne répond pas, le portefeuille ne peut donc pas être comparé au backend. Démarrez-le, ou activez "Terminer bien que le portefeuille soit en désaccord".',
+    362: 'Refusé : le portefeuille est en désaccord avec le backend sur ${count} sortie(s). Exécutez Récupération : État, puis Récupération : Réparer le portefeuille, ou activez "Terminer bien que le portefeuille soit en désaccord".',
+    363: 'Récupération terminée',
+    364: "Le mode de récupération est désactivé. Si Core Lightning est en cours d'exécution, il redémarre maintenant, en ligne, avec un magasin de gossip vide ; s'il est arrêté, cela se produira à son prochain démarrage.",
   },
 } satisfies Record<string, LangDict>
