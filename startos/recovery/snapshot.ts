@@ -7,7 +7,8 @@ import {
   rename,
   writeFile,
 } from 'fs/promises'
-import { ChainComparison, SplitHeights } from './chain'
+import { ChainComparison } from './chain'
+import { SplitHeights } from './heights'
 import { listMethods, Lists } from './node'
 
 /** The main volume as the action's own process sees it. */

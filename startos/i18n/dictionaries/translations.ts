@@ -365,6 +365,11 @@ export default {
     362: 'Rechazado: el monedero no coincide con el backend en ${count} salida(s). Ejecute Recuperación: Estado y después Recuperación: Reparar monedero, o active "Finalizar aunque el monedero no coincida".',
     363: 'Recuperación finalizada',
     364: 'El modo de recuperación está desactivado. Si Core Lightning está en ejecución, se reinicia ahora, en línea, con un almacén de gossip vacío; si está detenido, esto ocurrirá en su próximo inicio.',
+
+    // Recovery: round 2
+    365: 'Salidas comprobadas',
+    366: 'Sigue en ejecución',
+    367: 'SIGUE EN EJECUCIÓN: ${what} no ha respondido dentro del tiempo que espera esta acción. No ha fallado: Core Lightning sigue trabajando en ello. No lo inicie de nuevo; siga los registros del servicio y ejecute Recuperación: Estado más tarde.',
   },
   de_DE: {
     0: 'Core Lightning wird gestartet!',
@@ -730,6 +735,11 @@ export default {
     362: 'Abgelehnt: Das Wallet weicht bei ${count} Output(s) vom Backend ab. Führen Sie Wiederherstellung: Status und danach Wiederherstellung: Wallet reparieren aus, oder aktivieren Sie "Abschließen, obwohl das Wallet abweicht".',
     363: 'Wiederherstellung abgeschlossen',
     364: 'Der Wiederherstellungsmodus ist ausgeschaltet. Wenn Core Lightning läuft, wird es jetzt online mit einem leeren Gossip-Speicher neu gestartet; wenn es gestoppt ist, geschieht dies beim nächsten Start.',
+
+    // Recovery: round 2
+    365: 'Geprüfte Outputs',
+    366: 'Läuft noch',
+    367: 'LÄUFT NOCH: ${what} hat nicht innerhalb der Zeit geantwortet, die diese Aktion wartet. Der Vorgang ist nicht fehlgeschlagen: Core Lightning arbeitet noch daran. Starten Sie ihn nicht erneut; verfolgen Sie die Logs des Dienstes und führen Sie später Wiederherstellung: Status aus.',
   },
   pl_PL: {
     0: 'Uruchamianie Core Lightning!',
@@ -1095,6 +1105,11 @@ export default {
     362: 'Odmowa: portfel nie zgadza się z backendem; liczba niezgodnych wyjść: ${count}. Należy uruchomić Odzyskiwanie: Stan, następnie Odzyskiwanie: Napraw portfel, albo włączyć "Zakończ mimo niezgodności portfela".',
     363: 'Odzyskiwanie zakończone',
     364: 'Tryb odzyskiwania jest wyłączony. Jeśli Core Lightning działa, zostanie teraz uruchomiony ponownie, online, z pustym magazynem gossip; jeśli jest zatrzymany, nastąpi to przy następnym uruchomieniu.',
+
+    // Recovery: round 2
+    365: 'Sprawdzone wyjścia',
+    366: 'Nadal trwa',
+    367: 'NADAL TRWA: ${what} – brak odpowiedzi w czasie, przez który ta akcja czeka. Operacja nie zakończyła się niepowodzeniem: Core Lightning nadal nad nią pracuje. Nie należy uruchamiać jej ponownie; należy śledzić logi usługi i później uruchomić Odzyskiwanie: Stan.',
   },
   fr_FR: {
     0: 'Démarrage de Core Lightning !',
@@ -1460,5 +1475,10 @@ export default {
     362: 'Refusé : le portefeuille est en désaccord avec le backend sur ${count} sortie(s). Exécutez Récupération : État, puis Récupération : Réparer le portefeuille, ou activez "Terminer bien que le portefeuille soit en désaccord".',
     363: 'Récupération terminée',
     364: "Le mode de récupération est désactivé. Si Core Lightning est en cours d'exécution, il redémarre maintenant, en ligne, avec un magasin de gossip vide ; s'il est arrêté, cela se produira à son prochain démarrage.",
+
+    // Recovery: round 2
+    365: 'Sorties vérifiées',
+    366: 'Toujours en cours',
+    367: "TOUJOURS EN COURS : ${what} n'a pas répondu dans le délai d'attente de cette action. L'opération n'a pas échoué : Core Lightning y travaille encore. Ne la relancez pas ; suivez les journaux du service et exécutez Récupération : État plus tard.",
   },
 } satisfies Record<string, LangDict>

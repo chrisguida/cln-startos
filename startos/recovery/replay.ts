@@ -1,4 +1,4 @@
-import { SplitHeights } from './chain'
+import { SplitHeights } from './heights'
 import {
   ClosedChannel,
   isOpen,
@@ -8,7 +8,7 @@ import {
   WalletTx,
 } from './node'
 import { finalPath, readLists, snapshotDirs } from './snapshot'
-import { CliError, Tools } from './tools'
+import { CliError, outpointKey, slow, Tools } from './tools'
 
 type Funding = { funding_txid: string; funding_outnum: number }
 const outpoint = (txid: string, index: number) => `${txid}:${index}`
@@ -254,14 +254,16 @@ export const isDone = (v: Verdict) =>
   v.kind === 'confirmed' || v.kind === 'mempool' || v.kind === 'sent'
 
 /** Channels whose funding output the backend still shows unspent: their close is not on this chain. */
-export async function unspentFundings(tools: Tools, channels: Funding[]) {
-  const unspent: Funding[] = []
-  for (const c of channels) {
-    if ((await txOut(tools, c.funding_txid, c.funding_outnum)) !== null) {
-      unspent.push(c)
-    }
-  }
-  return unspent
+export async function unspentFundings<C extends Funding>(
+  tools: Tools,
+  channels: C[],
+) {
+  const point = (c: Funding) => ({
+    txid: c.funding_txid,
+    index: c.funding_outnum,
+  })
+  const unspent = await tools.unspent(channels.map(point))
+  return channels.filter((c) => unspent.has(outpointKey(point(c))))
 }
 
 export type Drift = {
@@ -269,6 +271,8 @@ export type Drift = {
   phantom: WalletOutput[]
   /** The wallet has these as spent, the backend has them unspent. */
   restorable: WalletOutput[]
+  /** How many outputs were checked. */
+  checked: number
 }
 
 /**
@@ -280,20 +284,20 @@ export type Drift = {
 export async function walletDrift(tools: Tools): Promise<Drift> {
   const list = (spent: boolean) =>
     tools
-      .lightning<{ outputs: WalletOutput[] }>('listfunds', { spent }, 300_000)
+      .lightning<{ outputs: WalletOutput[] }>('listfunds', { spent }, slow)
       .then((r) => r.outputs)
+  const point = (o: WalletOutput) => ({ txid: o.txid, index: o.output })
   const counted = await list(false)
-  const key = (o: WalletOutput) => `${o.txid}:${o.output}`
-  const countedKeys = new Set(counted.map(key))
-  const drift: Drift = { phantom: [], restorable: [] }
-  for (const o of counted) {
-    if ((await txOut(tools, o.txid, o.output)) === null) drift.phantom.push(o)
+  const all = await list(true)
+  const countedKeys = new Set(counted.map((o) => outpointKey(point(o))))
+  const unspent = await tools.unspent(all.map(point))
+  return {
+    phantom: counted.filter((o) => !unspent.has(outpointKey(point(o)))),
+    restorable: all.filter(
+      (o) =>
+        !countedKeys.has(outpointKey(point(o))) &&
+        unspent.has(outpointKey(point(o))),
+    ),
+    checked: all.length,
   }
-  for (const o of await list(true)) {
-    if (countedKeys.has(key(o))) continue
-    if ((await txOut(tools, o.txid, o.output)) !== null) {
-      drift.restorable.push(o)
-    }
-  }
-  return drift
 }

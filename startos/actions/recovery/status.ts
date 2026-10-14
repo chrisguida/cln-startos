@@ -179,6 +179,7 @@ export const recoveryStatus = sdk.Action.withoutInput(
               ),
             ]),
             group(i18n('Wallet against the backend'), [
+              row(i18n('Outputs checked'), String(drift?.checked ?? 0)),
               ...(drift?.phantom ?? []).map((o) =>
                 row(
                   `${i18n('Output')} ${shortId(o.txid)}:${o.output}`,

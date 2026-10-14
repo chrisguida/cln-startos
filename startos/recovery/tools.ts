@@ -14,6 +14,8 @@ import {
  * the wallet or wait on a peer get their own.
  */
 export const quick = 60_000
+/** For calls whose duration grows with the wallet: lists, withdrawals. */
+export const slow = 30 * 60_000
 
 export class CliError extends Error {
   constructor(
@@ -28,6 +30,9 @@ export class CliError extends Error {
 }
 
 type Param = string | number | boolean | null | object
+
+export type Outpoint = { txid: string; index: number }
+export const outpointKey = (o: Outpoint) => `${o.txid}:${o.index}`
 
 export type Tools = {
   /** `bitcoin` or `regtest`: also the subdirectory holding the wallet. */
@@ -50,6 +55,11 @@ export type Tools = {
   ) => Promise<R>
   /** bitcoin-cli for the calls that print a bare string (hashes, raw hex). */
   bitcoinText: (method: string, params?: Param[]) => Promise<string>
+  /**
+   * Which of the given outputs the backend has unspent (mempool included):
+   * one exec for the whole list instead of one per output.
+   */
+  unspent: (outpoints: Outpoint[]) => Promise<Set<string>>
   /** A read-only query on lightningd's database; works with lightningd stopped. */
   sqlite: <R>(sql: string) => Promise<R[]>
   /** Copies lightningd's database with SQLite's online backup API. */
@@ -81,8 +91,16 @@ export async function withTools<R>(
     mountsWithBitcoin(),
     name,
     async (sub) => {
-      const run = async (command: string[], timeoutMs: number) => {
-        const res = await sub.exec(command, undefined, timeoutMs)
+      const run = async (
+        command: string[],
+        timeoutMs: number,
+        input?: string,
+      ) => {
+        const res = await sub.exec(
+          command,
+          input === undefined ? undefined : { input },
+          timeoutMs,
+        )
         return {
           ok: res.exitCode === 0,
           // exec SIGKILLs the client at its timeout
@@ -190,6 +208,40 @@ export async function withTools<R>(
           timeoutMs?: number,
         ) => JSON.parse(await bitcoinText(method, params, timeoutMs)) as R,
         bitcoinText,
+        unspent: async (outpoints: Outpoint[]) => {
+          if (!outpoints.length) return new Set<string>()
+          if (!bridge) {
+            throw new CliError(
+              `The Bitcoin service (${backend}) is not reachable over the bridge`,
+              null,
+              false,
+            )
+          }
+          // A shell loop inside the subcontainer: each gettxout is a few
+          // milliseconds there, where an exec per output costs far more. Any
+          // failed call aborts the loop, so "no answer" never reads as "spent".
+          const cli = `bitcoin-cli -rpcconnect=${bridge.host} -rpcport=${bridge.port} -rpccookiefile=${bitcoinDataDir}/.cookie`
+          const timeoutMs = Math.max(quick, outpoints.length * 1_000)
+          const res = await run(
+            [
+              'sh',
+              '-c',
+              `while read t n; do o=$(${cli} gettxout "$t" "$n") || exit 1; [ -z "$o" ] || echo "$t:$n"; done`,
+            ],
+            timeoutMs,
+            outpoints.map((o) => `${o.txid} ${o.index}\n`).join(''),
+          )
+          if (!res.ok) {
+            throw new CliError(
+              res.timedOut
+                ? `gettxout for ${outpoints.length} outputs: no answer after ${timeoutMs / 1000} s`
+                : `gettxout: ${res.stderr || 'failed'}`,
+              null,
+              res.timedOut,
+            )
+          }
+          return new Set(res.stdout.split('\n').filter(Boolean))
+        },
         sqlite: async <R>(sql: string) => {
           const res = await run(
             [
@@ -201,7 +253,7 @@ export async function withTools<R>(
               databasePath(network),
               sql,
             ],
-            quick,
+            10 * 60_000,
           )
           if (!res.ok) {
             throw new CliError(

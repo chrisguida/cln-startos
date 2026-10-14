@@ -2,9 +2,9 @@ import { T } from '@start9labs/start-sdk'
 import { i18n } from '../../i18n'
 import { assertAboveFloor, perkb } from '../../recovery/fees'
 import { sat, WalletOutput, walletTotals } from '../../recovery/node'
-import { group, literal, row } from '../../recovery/report'
+import { group, literal, row, stillRunning } from '../../recovery/report'
 import { audit, saveRawTx } from '../../recovery/snapshot'
-import { Tools, withTools } from '../../recovery/tools'
+import { slow, Tools, withTools } from '../../recovery/tools'
 import { sdk } from '../../sdk'
 
 const { InputSpec, Value } = sdk
@@ -101,7 +101,7 @@ export const recoverySplit = sdk.Action.withInput(
           await tools.lightning<{ outputs: WalletOutput[] }>(
             'listfunds',
             {},
-            300_000,
+            slow,
           )
         ).outputs
 
@@ -132,9 +132,11 @@ export const recoverySplit = sdk.Action.withInput(
             feerate,
             utxos: [first],
           },
-          300_000,
+          slow,
         )
       } catch (e) {
+        const running = stillRunning('withdraw', e)
+        if (running) return running
         throw new Error(
           i18n(
             'The test spend of one output (${utxo}, ${amount} sat) failed, and nothing else was spent: ${error}. If Core Lightning stopped, it refused to sign: check its logs before trying again.',
@@ -181,10 +183,12 @@ export const recoverySplit = sdk.Action.withInput(
           rest = await tools.lightning<Withdrawn>(
             'withdraw',
             { destination: await address(), satoshi: 'all', feerate },
-            300_000,
+            slow,
           )
           await saveRawTx('split', rest.txid, rest.tx)
         } catch (e) {
+          const running = stillRunning('withdraw', e)
+          if (running) return running
           restError = e instanceof Error ? e.message : String(e)
         }
       }

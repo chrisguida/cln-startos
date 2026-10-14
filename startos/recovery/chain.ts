@@ -1,37 +1,6 @@
 import { clnConfig } from '../fileModels/config'
+import { heightsFor, SplitHeights } from './heights'
 import { CliError, Tools } from './tools'
-
-/**
- * Where the SHA256d and BLAKE2b chains part.
- * - `split`: the first height at which the two chains hold different blocks.
- * - `activation`: the first height with a 164-byte BLAKE2b header.
- * - `rescanFrom`: a height safely below the split, for lightningd's --rescan.
- */
-export type SplitHeights = {
-  split: number
-  activation: number
-  rescanFrom: number
-}
-
-const mainnet: SplitHeights = {
-  split: 961_632,
-  activation: 961_640,
-  rescanFrom: 961_600,
-}
-
-/** The heights for a network; regtest needs the test activation height. */
-export function heightsFor(
-  network: string,
-  regtestActivation: number | null | undefined,
-): SplitHeights | null {
-  if (network !== 'regtest') return mainnet
-  if (!regtestActivation) return null
-  return {
-    split: regtestActivation,
-    activation: regtestActivation,
-    rescanFrom: Math.max(regtestActivation - 40, 0),
-  }
-}
 
 /**
  * Mainnet has fixed heights. Regtest takes the BLAKE2b test activation height

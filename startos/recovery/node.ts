@@ -1,4 +1,4 @@
-import { Tools } from './tools'
+import { slow, Tools } from './tools'
 
 export type PeerChannel = {
   peer_id: string
@@ -59,7 +59,7 @@ export async function fetchLists(tools: Tools): Promise<Lists> {
   const lists: Record<string, unknown> = {}
   for (const method of listMethods) {
     // listtransactions carries every raw transaction the wallet has seen.
-    lists[method] = await tools.lightning(method, {}, 300_000)
+    lists[method] = await tools.lightning(method, {}, slow)
   }
   return lists as Lists
 }

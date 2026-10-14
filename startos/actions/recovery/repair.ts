@@ -10,9 +10,9 @@ import {
   selectChannelTxs,
   unspentFundings,
 } from '../../recovery/replay'
-import { literal, row } from '../../recovery/report'
+import { literal, row, stillRunning } from '../../recovery/report'
 import { audit } from '../../recovery/snapshot'
-import { withTools } from '../../recovery/tools'
+import { slow, withTools } from '../../recovery/tools'
 import { sdk } from '../../sdk'
 
 const { InputSpec, Value } = sdk
@@ -142,17 +142,24 @@ export const recoveryRepair = sdk.Action.withInput(
       const before = await tools.lightning<{ outputs: WalletOutput[] }>(
         'listfunds',
         {},
-        300_000,
+        slow,
       )
-      const res = await tools.lightning<{ outputs: Rescanned[] }>(
-        'dev-rescan-outputs',
-        {},
-        rescanTimeoutMs,
-      )
+      let res: { outputs: Rescanned[] }
+      try {
+        res = await tools.lightning<{ outputs: Rescanned[] }>(
+          'dev-rescan-outputs',
+          {},
+          rescanTimeoutMs,
+        )
+      } catch (e) {
+        const running = stillRunning('dev-rescan-outputs', e)
+        if (running) return running
+        throw e
+      }
       const after = await tools.lightning<{ outputs: WalletOutput[] }>(
         'listfunds',
         {},
-        300_000,
+        slow,
       )
       const changed = res.outputs.filter((o) => o.oldstate !== o.newstate)
       const totals = walletTotals(after.outputs)

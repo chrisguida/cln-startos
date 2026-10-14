@@ -399,6 +399,11 @@ const dict = {
   'Refused: the wallet disagrees with the backend on ${count} output(s). Run Recovery: Status, then Recovery: Repair Wallet, or turn on "Finish Although The Wallet Disagrees".': 362,
   'Recovery finished': 363,
   'Recovery mode is off. If Core Lightning is running it restarts now, online, with an empty gossip store; if it is stopped, that happens at its next start.': 364,
+
+  // Recovery: round 2
+  'Outputs checked': 365,
+  'Still running': 366,
+  'STILL RUNNING: ${what} has not answered within the time this action waits. It has not failed: Core Lightning is still working on it. Do not start it again; follow the service logs and run Recovery: Status later.': 367,
 } as const
 
 /**
