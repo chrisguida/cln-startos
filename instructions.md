@@ -51,7 +51,7 @@
 - **Rescan Blockchain** — rescan the blockchain from a given depth or block height. **Required after restoring from backup** — the wallet balance reads zero until a rescan completes.
 - **Reset UI Password** — clear the CLN Application UI password so you can set a new one on your next visit from its `.local`, IP, or `.onion` address. It asks you to confirm first, because the current password stops working.
 - **Delete Gossip Store** — delete a corrupted `gossip_store`; CLN will rebuild it from peers on next start, and payments may not find a route until it has. Available when the service is stopped, and asks you to confirm first.
-- **Recovery** — for moving a node from the SHA256d chain to the BLAKE2b chain. This build does the first half; the BLAKE2b build of Core Lightning, installed over this one, does the second.
+- **Recovery** — for moving a node from the SHA256d chain to the BLAKE2b chain. This build does the first half; the BLAKE2b build of Core Lightning, installed over this one, does the second. You are running the recovery flavor of Core Lightning: it was installed over the stock version on purpose, and it cannot be turned back into the stock version.
   - **Recovery: Status** — which chain your Bitcoin service is on, how far this node has followed it, your channels and coins, and which situation each channel is in. It changes nothing; start here.
   - **Recovery: Snapshot** — saves the node's secret, its database and its lists of transactions and channels into a `recovery` folder on this service's volume. Take one before you close anything and one after everything has settled.
   - **Recovery: Offline Mode** — keeps Core Lightning disconnected from all peers until you turn it off again.
