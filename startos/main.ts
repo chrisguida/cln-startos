@@ -78,6 +78,11 @@ export const main = sdk.setupMain(async ({ effects }) => {
     lightningdArgs.push(`--rescan=${store.rescan}`)
   }
 
+  // Unlike rescan this is a standing setting, toggled by Recovery: Offline Mode.
+  if (store.offline) {
+    lightningdArgs.push('--offline')
+  }
+
   // `rescan` and `restore` are one-shot request flags (rescan set by the
   // Rescan Blockchain action, restore by the post-restore hook in backups.ts).
   // They are deliberately NOT cleared here: a session where lightningd never
@@ -364,6 +369,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
           JSON.stringify(next?.customExternalHosts) &&
         JSON.stringify(prev?.clearnetVpn) ===
           JSON.stringify(next?.clearnetVpn) &&
+        prev?.offline === next?.offline &&
         (next?.rescan === undefined || prev?.rescan === next?.rescan) &&
         (next?.restore === undefined || prev?.restore === next?.restore),
     )

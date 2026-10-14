@@ -10,6 +10,8 @@ const shape = z.looseObject({
   // Regtest only: where the BLAKE2b test chain parts from this one. Stock
   // lightningd has no option for it; the Recovery actions read it.
   blake2bActivationHeight: z.number().optional().catch(undefined),
+  // Persisted --offline: no peer connections until it is turned off again.
+  offline: z.boolean().catch(false),
   rescan: z.number().optional().catch(undefined),
   watchtowerServer: z.boolean().catch(false),
   watchtowerClients: z.array(z.string()).catch([]),
