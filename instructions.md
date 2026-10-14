@@ -48,6 +48,12 @@
 - **Watchtower Client Info** — visible when at least one tower is configured; shows registered towers and subscription state. Towers you add are registered automatically the next time Core Lightning starts, and stay registered across restarts and updates. If this list is empty, give the service a minute after startup and check it again — registration runs shortly after Core Lightning is up. Tower URIs are usually `.onion` addresses, which need Tor installed and running to reach.
 - **Rescan Blockchain** — rescan the blockchain from a given depth or block height. **Required after restoring from backup** — the wallet balance reads zero until a rescan completes.
 - **Reset UI Password** — clear the CLN Application UI password so you can set a new one on the next visit.
+- **Recovery** — for a node that ran the stock build of Core Lightning on the SHA256d chain before this build was installed over it. Such a node starts in recovery mode: offline, until you run **Recovery: Finish**.
+  - **Recovery: Status** — whether this node's data followed another chain than your Bitcoin service, which channel closes are missing on this chain, and whether the wallet is right. It changes nothing; start here.
+  - **Recovery: Replay Closes** — repeats on this chain the channel closes that happened on the other one. It starts as a dry run. It never repeats a withdrawal.
+  - **Recovery: Repair Wallet** — makes the wallet match this chain: coins you spent on the other chain only come back, coins that only exist there disappear. Run it after the replayed closes have confirmed.
+  - **Recovery: Split Coins** — moves your coins in transactions that are valid on this chain only.
+  - **Recovery: Finish** — leaves recovery mode and reconnects to the network.
 - **Delete Gossip Store** — delete a corrupted `gossip_store`; CLN will rebuild it from peers on next start. Available when the service is stopped.
 
 ### Backups and restore
