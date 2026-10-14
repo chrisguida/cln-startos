@@ -12,6 +12,7 @@ import { watchtowerClientInfo } from './watchtower/watchtowerClientInfo'
 import { rescanBlockchain } from './rescanBlockchain'
 import { nodeInfo } from './nodeInfo'
 import { displaySeed } from './displaySeed'
+import { recoveryReplay } from './recovery/replay'
 import { recoveryStatus } from './recovery/status'
 
 export const actions = sdk.Actions.of()
@@ -29,5 +30,6 @@ export const actions = sdk.Actions.of()
   .addAction(rescanBlockchain)
   .addAction(nodeInfo)
   .addAction(recoveryStatus)
+  .addAction(recoveryReplay)
 
 // @TODO generate-lnlink
