@@ -33,37 +33,47 @@ const removeClboss = async ({ effects }: { effects: T.Effects }) => {
 // installed over the stock build on purpose and left again for the BLAKE2b
 // flavor, whose migration accepts arrivals from here.
 export const current = VersionInfo.of({
-  version: '#recovery:26.6.9:0',
+  version: '#recovery:26.6.9:1',
   releaseNotes: {
-    en_US: `Core Lightning 26.06.9 with the Recovery actions, for moving a node that has channels or coins from before the chains parted to the BLAKE2b chain.
+    en_US: `Requires StartOS 0.4.1 or later.
+
+Core Lightning 26.06.9 with the Recovery actions, for moving a node that has channels or coins from before the chains parted to the BLAKE2b chain.
 
 - General Settings has a Bitcoin Backend choice, so that the node can keep following the SHA256d chain on the Knots (pre-RDTS) service.
 - Recovery actions: Status, Snapshot, Offline Mode, Close All Channels, Withdraw to SHA256d Wallet.
 - CLBOSS is turned off when this build is installed, so that it cannot move coins during the recovery.
 
 Install it over Core Lightning 26.6.9 or older. When you are done here, install the BLAKE2b build of Core Lightning over it. You cannot go back to the stock build from this one.`,
-    es_ES: `Core Lightning 26.06.9 con las acciones de Recuperación, para trasladar a la cadena BLAKE2b un nodo que tiene canales o monedas anteriores a la separación de las cadenas.
+    es_ES: `Requiere StartOS 0.4.1 o posterior.
+
+Core Lightning 26.06.9 con las acciones de Recuperación, para trasladar a la cadena BLAKE2b un nodo que tiene canales o monedas anteriores a la separación de las cadenas.
 
 - Configuración general incluye la opción Backend de Bitcoin, para que el nodo pueda seguir la cadena SHA256d en el servicio Knots (pre-RDTS).
 - Acciones de Recuperación: Estado, Instantánea, Modo sin conexión, Cerrar todos los canales, Retirar a un monedero SHA256d.
 - CLBOSS se desactiva al instalar esta versión, para que no pueda mover monedas durante la recuperación.
 
 Instálelo sobre Core Lightning 26.6.9. Cuando termine aquí, instale encima la versión BLAKE2b de Core Lightning. Desde esta versión no se puede volver a la versión original.`,
-    de_DE: `Core Lightning 26.06.9 mit den Wiederherstellungsaktionen, um einen Knoten mit Kanälen oder Coins aus der Zeit vor der Trennung der Ketten auf die BLAKE2b-Kette zu bringen.
+    de_DE: `Erfordert StartOS 0.4.1 oder neuer.
+
+Core Lightning 26.06.9 mit den Wiederherstellungsaktionen, um einen Knoten mit Kanälen oder Coins aus der Zeit vor der Trennung der Ketten auf die BLAKE2b-Kette zu bringen.
 
 - Die Allgemeinen Einstellungen enthalten die Auswahl Bitcoin-Backend, damit der Knoten der SHA256d-Kette auf dem Dienst Knots (pre-RDTS) weiter folgen kann.
 - Wiederherstellungsaktionen: Status, Snapshot, Offline-Modus, Alle Kanäle schließen, Auf SHA256d-Wallet auszahlen.
 - CLBOSS wird bei der Installation dieses Builds ausgeschaltet, damit es während der Wiederherstellung keine Coins bewegen kann.
 
 Installieren Sie es über Core Lightning 26.6.9. Wenn Sie hier fertig sind, installieren Sie den BLAKE2b-Build von Core Lightning darüber. Von diesem Build aus ist kein Weg zurück zum ursprünglichen Build möglich.`,
-    pl_PL: `Core Lightning 26.06.9 z akcjami odzyskiwania, służącymi do przeniesienia na łańcuch BLAKE2b węzła, który ma kanały lub monety sprzed rozdzielenia łańcuchów.
+    pl_PL: `Wymaga StartOS 0.4.1 lub nowszego.
+
+Core Lightning 26.06.9 z akcjami odzyskiwania, służącymi do przeniesienia na łańcuch BLAKE2b węzła, który ma kanały lub monety sprzed rozdzielenia łańcuchów.
 
 - Ustawienia ogólne zawierają wybór Backend Bitcoin, dzięki czemu węzeł może nadal podążać za łańcuchem SHA256d w usłudze Knots (pre-RDTS).
 - Akcje odzyskiwania: Status, Migawka, Tryb offline, Zamknij wszystkie kanały, Wypłać do portfela SHA256d.
 - CLBOSS jest wyłączany przy instalacji tej wersji, aby nie mógł przenosić monet podczas odzyskiwania.
 
 Zainstaluj tę wersję na Core Lightning 26.6.9. Po zakończeniu pracy tutaj zainstaluj na niej wersję BLAKE2b Core Lightning. Z tej wersji nie można wrócić do wersji standardowej.`,
-    fr_FR: `Core Lightning 26.06.9 avec les actions de récupération, pour amener sur la chaîne BLAKE2b un nœud qui possède des canaux ou des pièces antérieurs à la séparation des chaînes.
+    fr_FR: `Nécessite StartOS 0.4.1 ou une version ultérieure.
+
+Core Lightning 26.06.9 avec les actions de récupération, pour amener sur la chaîne BLAKE2b un nœud qui possède des canaux ou des pièces antérieurs à la séparation des chaînes.
 
 - Les Paramètres généraux proposent le choix Backend Bitcoin, afin que le nœud puisse continuer à suivre la chaîne SHA256d sur le service Knots (pre-RDTS).
 - Actions de récupération : État, Instantané, Mode hors ligne, Fermer tous les canaux, Retirer vers un portefeuille SHA256d.
@@ -72,7 +82,7 @@ Zainstaluj tę wersję na Core Lightning 26.6.9. Po zakończeniu pracy tutaj zai
 Installez-la par-dessus Core Lightning 26.6.9. Une fois terminé ici, installez par-dessus la version BLAKE2b de Core Lightning. Il n'est pas possible de revenir à la version standard depuis celle-ci.`,
   },
   migrations: {
-    // No earlier version of this flavor exists.
+    // #recovery:26.6.9:0 differs only in the SDK (3.0.6); nothing to migrate.
     up: async () => {},
     down: IMPOSSIBLE,
     other: {
