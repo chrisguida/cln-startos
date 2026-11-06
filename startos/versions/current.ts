@@ -48,9 +48,11 @@ const enterRecovery = async ({ effects }: { effects: T.Effects }) => {
 }
 
 export const current = VersionInfo.of({
-  version: '#blake:26.6.9:1',
+  version: '#blake:26.6.9:2',
   releaseNotes: {
     en_US: `Core Lightning v26.06.9-blake2b.7, based on upstream v26.06.9. We strongly recommend updating.
+
+Requires StartOS 0.4.1 or later.
 
 ## Notes for operators
 

@@ -96,11 +96,7 @@ export async function withTools<R>(
         timeoutMs: number,
         input?: string,
       ) => {
-        const res = await sub.exec(
-          command,
-          input === undefined ? undefined : { input },
-          timeoutMs,
-        )
+        const res = await sub.exec(command, { input, timeout: timeoutMs })
         return {
           ok: res.exitCode === 0,
           // exec SIGKILLs the client at its timeout
@@ -276,8 +272,7 @@ export async function withTools<R>(
               databasePath(network),
               `.backup '${dest}'`,
             ],
-            undefined,
-            null,
+            { timeout: null },
           )
           if (res.exitCode !== 0 || text(res.stderr)) {
             throw new CliError(

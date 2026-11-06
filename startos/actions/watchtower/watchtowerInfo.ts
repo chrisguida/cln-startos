@@ -76,6 +76,7 @@ export const watchtowerInfo = sdk.Action.withoutInput(
             masked: true,
             qr: true,
             type: 'single',
+            launchable: false,
           }
         }) || []
 
@@ -105,6 +106,7 @@ export const watchtowerInfo = sdk.Action.withoutInput(
               qr: false,
               masked: false,
               type: 'single',
+              launchable: false,
             },
             {
               name: i18n('Number of Watcher Appointments'),
@@ -116,6 +118,7 @@ export const watchtowerInfo = sdk.Action.withoutInput(
               qr: false,
               masked: false,
               type: 'single',
+              launchable: false,
             },
             {
               name: i18n('Number of Responder Trackers'),
@@ -127,6 +130,7 @@ export const watchtowerInfo = sdk.Action.withoutInput(
               qr: false,
               masked: false,
               type: 'single',
+              launchable: false,
             },
             {
               name: i18n('Bitcoind Reachable'),
@@ -138,6 +142,7 @@ export const watchtowerInfo = sdk.Action.withoutInput(
               qr: false,
               masked: false,
               type: 'single',
+              launchable: false,
             },
           ],
         },

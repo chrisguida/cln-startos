@@ -46,6 +46,7 @@ export const createRune = sdk.Action.withoutInput(
           masked: true,
           copyable: true,
           type: 'single',
+          launchable: false,
         },
       }
     }

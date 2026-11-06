@@ -31,6 +31,7 @@ export const row = (
   name,
   description: null,
   type: 'single',
+  launchable: false,
   value,
   copyable,
   qr: false,

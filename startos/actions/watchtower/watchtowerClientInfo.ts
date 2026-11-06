@@ -70,6 +70,7 @@ export const watchtowerClientInfo = sdk.Action.withoutInput(
                 qr: false,
                 masked: false,
                 type: 'single',
+                launchable: false,
               },
               {
                 name: i18n('Available Slots'),
@@ -79,6 +80,7 @@ export const watchtowerClientInfo = sdk.Action.withoutInput(
                 qr: false,
                 masked: false,
                 type: 'single',
+                launchable: false,
               },
               {
                 name: i18n('Subscription Start'),
@@ -88,6 +90,7 @@ export const watchtowerClientInfo = sdk.Action.withoutInput(
                 qr: false,
                 masked: false,
                 type: 'single',
+                launchable: false,
               },
               {
                 name: i18n('Subscription Expiry'),
@@ -99,6 +102,7 @@ export const watchtowerClientInfo = sdk.Action.withoutInput(
                 qr: false,
                 masked: false,
                 type: 'single',
+                launchable: false,
               },
               {
                 name: i18n('Status'),
@@ -108,6 +112,7 @@ export const watchtowerClientInfo = sdk.Action.withoutInput(
                 qr: false,
                 masked: false,
                 type: 'single',
+                launchable: false,
               },
             ],
             type: 'group',

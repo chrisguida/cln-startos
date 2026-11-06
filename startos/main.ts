@@ -112,8 +112,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
           `${rootDir}/${conf?.raw?.network ?? 'bitcoin'}/lightningd.sqlite3`,
           'SELECT max(height) FROM blocks',
         ],
-        undefined,
-        60_000,
+        { timeout: 60_000 },
       )
       .then(
         (res) => (res.exitCode === 0 ? parseInt(String(res.stdout), 10) : NaN),
@@ -538,11 +537,9 @@ export const main = sdk.setupMain(async ({ effects }) => {
                   JSON.stringify(tower.host),
                   String(tower.port),
                 ],
-                { cwd: rootDir },
-                undefined,
                 {
-                  abort: abort.reason,
-                  signal: abort,
+                  cwd: rootDir,
+                  abort: { abort: abort.reason, signal: abort },
                 },
               )
 
@@ -595,11 +592,9 @@ export const main = sdk.setupMain(async ({ effects }) => {
               console.log(`Watchtower client removing ${tower}`)
               const res = await subcontainer.exec(
                 ['lightning-cli', 'abandontower', id],
-                { cwd: rootDir },
-                undefined,
                 {
-                  abort: abort.reason,
-                  signal: abort,
+                  cwd: rootDir,
+                  abort: { abort: abort.reason, signal: abort },
                 },
               )
 

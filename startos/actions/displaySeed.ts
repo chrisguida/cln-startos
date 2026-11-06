@@ -55,6 +55,7 @@ export const displaySeed = sdk.Action.withoutInput(
         masked: true,
         qr: false,
         type: 'single',
+        launchable: false,
         value: hsmSecretContents!
           .replace(/\u0000/g, '')
           .split(' ')

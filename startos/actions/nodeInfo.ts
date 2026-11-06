@@ -60,6 +60,7 @@ export const nodeInfo = sdk.Action.withoutInput(
           masked: true,
           qr: true,
           type: 'single',
+          launchable: false,
           value: `${nodeInfo.id}@${url}`,
         }
       }) || []
@@ -83,6 +84,7 @@ export const nodeInfo = sdk.Action.withoutInput(
             masked: true,
             qr: true,
             type: 'single',
+            launchable: false,
           },
           {
             name: i18n('Node URI(s)'),
