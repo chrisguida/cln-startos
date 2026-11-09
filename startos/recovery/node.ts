@@ -11,6 +11,7 @@ export type PeerChannel = {
   funding_outnum: number
   to_us_msat?: number
   total_msat?: number
+  opener?: string
   htlcs?: unknown[]
   channel_type?: { names?: string[] }
 }
@@ -22,6 +23,10 @@ export type ClosedChannel = {
   funding_outnum: number
   close_cause?: string
   final_to_us_msat?: number
+  peer_id?: string
+  opener?: string
+  total_msat?: number
+  last_commitment_txid?: string
 }
 
 export type WalletOutput = {

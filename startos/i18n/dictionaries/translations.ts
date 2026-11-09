@@ -449,6 +449,15 @@ export default {
 
     // Recovery: still running
     448: 'Todavía sin respuesta. El cierre no ha fallado: Core Lightning sigue trabajando en él. Ejecute Recuperación: Estado más tarde.',
+
+    // Recovery: Export Diagnostics
+    449: 'Recuperación: Exportar diagnóstico',
+    450: 'Genera un archivo con todo lo necesario para investigar un problema de recuperación: el informe de Estado, la comparación de cadenas, cada canal y sus transacciones de cierre, el monedero, el registro de recuperación y los registros de fallos. Envíelo a la persona que le ayuda con la recuperación. No cambia nada.',
+    451: 'Con los identificadores de transacción y los importes incluidos, quien lea el archivo puede ver estas monedas y su historial en la cadena. Compártalo solo con personas de confianza, o desactive esa opción. El archivo nunca contiene su semilla, hsm_secret, runas, contraseñas ni claves de VPN.',
+    452: 'Incluir identificadores de transacción e importes',
+    453: 'Activado: el archivo muestra identificadores de transacción, direcciones, identificadores cortos de canal e importes, que suelen ser necesarios para encontrar la causa. Desactivado: se sustituyen por marcadores y se omiten las líneas de los registros de fallos.',
+    454: 'Descargue el archivo y envíelo a la persona que le ayuda con la recuperación. Incluye identificadores de transacción, direcciones e importes.',
+    455: 'Descargue el archivo y envíelo a la persona que le ayuda con la recuperación. Los identificadores de transacción, las direcciones, los identificadores cortos de canal y los importes se sustituyen por marcadores.',
   },
   de_DE: {
     0: 'Core Lightning wird gestartet!',
@@ -898,6 +907,15 @@ export default {
 
     // Recovery: still running
     448: 'Noch keine Antwort. Die Schließung ist nicht fehlgeschlagen: Core Lightning arbeitet noch daran. Führen Sie später Wiederherstellung: Status aus.',
+
+    // Recovery: Export Diagnostics
+    449: 'Wiederherstellung: Diagnose exportieren',
+    450: 'Schreibt eine Datei mit allem, was zur Untersuchung eines Wiederherstellungsproblems nötig ist: den Statusbericht, den Kettenvergleich, jeden Kanal mit seinen Schließtransaktionen, die Wallet, das Wiederherstellungsprotokoll und die Absturzprotokolle. Senden Sie sie an die Person, die Ihnen bei der Wiederherstellung hilft. Ändert nichts.',
+    451: 'Mit Transaktions-IDs und Beträgen kann jeder, der die Datei liest, diese Coins und ihre Geschichte auf der Kette sehen. Teilen Sie sie nur mit Personen, denen Sie vertrauen, oder schalten Sie diese Option aus. Die Datei enthält nie Ihren Seed, hsm_secret, Runes, Passwörter oder VPN-Schlüssel.',
+    452: 'Transaktions-IDs und Beträge einschließen',
+    453: 'An: Die Datei zeigt Transaktions-IDs, Adressen, kurze Kanal-IDs und Beträge, was meist nötig ist, um die Ursache zu finden. Aus: Sie werden durch Platzhalter ersetzt, und die Zeilen der Absturzprotokolle entfallen.',
+    454: 'Laden Sie die Datei herunter und senden Sie sie an die Person, die Ihnen bei der Wiederherstellung hilft. Sie enthält Transaktions-IDs, Adressen und Beträge.',
+    455: 'Laden Sie die Datei herunter und senden Sie sie an die Person, die Ihnen bei der Wiederherstellung hilft. Transaktions-IDs, Adressen, kurze Kanal-IDs und Beträge sind durch Platzhalter ersetzt.',
   },
   pl_PL: {
     0: 'Uruchamianie Core Lightning!',
@@ -1347,6 +1365,15 @@ export default {
 
     // Recovery: still running
     448: 'Brak odpowiedzi do tej pory. Zamknięcie nie zakończyło się niepowodzeniem: Core Lightning nadal nad nim pracuje. Później należy uruchomić Odzyskiwanie: Stan.',
+
+    // Recovery: Export Diagnostics
+    449: 'Odzyskiwanie: Eksportuj diagnostykę',
+    450: 'Zapisuje jeden plik ze wszystkim, co potrzebne do zbadania problemu z odzyskiwaniem: raport Statusu, porównanie łańcuchów, każdy kanał i jego transakcje zamknięcia, portfel, dziennik odzyskiwania i dzienniki awarii. Wyślij go osobie, która pomaga w odzyskiwaniu. Niczego nie zmienia.',
+    451: 'Gdy plik zawiera identyfikatory transakcji i kwoty, każdy, kto go przeczyta, zobaczy te monety i ich historię w łańcuchu. Udostępniaj go tylko zaufanym osobom albo wyłącz tę opcję. Plik nigdy nie zawiera Twojego seeda, hsm_secret, run, haseł ani kluczy VPN.',
+    452: 'Dołącz identyfikatory transakcji i kwoty',
+    453: 'Włączone: plik pokazuje identyfikatory transakcji, adresy, krótkie identyfikatory kanałów i kwoty, co zwykle jest potrzebne do znalezienia przyczyny. Wyłączone: zastępowane są symbolami zastępczymi, a wiersze dzienników awarii są pomijane.',
+    454: 'Pobierz plik i wyślij go osobie, która pomaga w odzyskiwaniu. Zawiera identyfikatory transakcji, adresy i kwoty.',
+    455: 'Pobierz plik i wyślij go osobie, która pomaga w odzyskiwaniu. Identyfikatory transakcji, adresy, krótkie identyfikatory kanałów i kwoty są zastąpione symbolami zastępczymi.',
   },
   fr_FR: {
     0: 'Démarrage de Core Lightning !',
@@ -1796,5 +1823,14 @@ export default {
 
     // Recovery: still running
     448: "Pas encore de réponse. La fermeture n'a pas échoué : Core Lightning y travaille encore. Exécutez Récupération : État plus tard.",
+
+    // Recovery: Export Diagnostics
+    449: 'Récupération : Exporter le diagnostic',
+    450: "Écrit un fichier contenant tout ce qu'il faut pour examiner un problème de récupération : le rapport d'état, la comparaison des chaînes, chaque canal et ses transactions de fermeture, le portefeuille, le journal de récupération et les journaux de plantage. Envoyez-le à la personne qui vous aide pour la récupération. Ne modifie rien.",
+    451: "Avec les identifiants de transaction et les montants, quiconque lit le fichier peut voir ces pièces et leur historique sur la chaîne. Ne le partagez qu'avec des personnes de confiance, ou désactivez cette option. Le fichier ne contient jamais votre graine, hsm_secret, runes, mots de passe ni clés VPN.",
+    452: 'Inclure les identifiants de transaction et les montants',
+    453: 'Activé : le fichier montre les identifiants de transaction, les adresses, les identifiants courts de canal et les montants, ce qui est généralement nécessaire pour trouver la cause. Désactivé : ils sont remplacés par des marqueurs, et les lignes des journaux de plantage sont omises.',
+    454: 'Téléchargez le fichier et envoyez-le à la personne qui vous aide pour la récupération. Il contient des identifiants de transaction, des adresses et des montants.',
+    455: 'Téléchargez le fichier et envoyez-le à la personne qui vous aide pour la récupération. Les identifiants de transaction, les adresses, les identifiants courts de canal et les montants sont remplacés par des marqueurs.',
   },
 } satisfies Record<string, LangDict>

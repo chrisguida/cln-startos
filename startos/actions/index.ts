@@ -16,6 +16,7 @@ import { clearnetVpn } from './clearnetVpn'
 import { payInvoice } from './payInvoice'
 import { receivePayment } from './receivePayment'
 import { recoveryCloseAll } from './recovery/closeAll'
+import { recoveryDiagnostics } from './recovery/diagnostics'
 import { recoveryOffline } from './recovery/offline'
 import { recoverySnapshot } from './recovery/snapshot'
 import { recoveryStatus } from './recovery/status'
@@ -53,5 +54,6 @@ export const actions = sdk.Actions.of()
   .addAction(recoveryOffline)
   .addAction(recoveryCloseAll)
   .addAction(recoveryWithdraw)
+  .addAction(recoveryDiagnostics)
 
 // @TODO generate-lnlink

@@ -33,9 +33,11 @@ const removeClboss = async ({ effects }: { effects: T.Effects }) => {
 // installed over the stock build on purpose and left again for the BLAKE2b
 // flavor, whose migration accepts arrivals from here.
 export const current = VersionInfo.of({
-  version: '#recovery:26.6.9:1',
+  version: '#recovery:26.6.9:4',
   releaseNotes: {
     en_US: `Requires StartOS 0.4.1 or later.
+
+Adds Recovery: Export Diagnostics (with a Download button), a file to send to the person helping you with a recovery problem.
 
 Core Lightning 26.06.9 with the Recovery actions, for moving a node that has channels or coins from before the chains parted to the BLAKE2b chain.
 
@@ -46,6 +48,8 @@ Core Lightning 26.06.9 with the Recovery actions, for moving a node that has cha
 Install it over Core Lightning 26.6.9 or older. When you are done here, install the BLAKE2b build of Core Lightning over it. You cannot go back to the stock build from this one.`,
     es_ES: `Requiere StartOS 0.4.1 o posterior.
 
+Añade Recuperación: Exportar diagnóstico, un archivo para enviar a la persona que le ayuda con un problema de recuperación.
+
 Core Lightning 26.06.9 con las acciones de Recuperación, para trasladar a la cadena BLAKE2b un nodo que tiene canales o monedas anteriores a la separación de las cadenas.
 
 - Configuración general incluye la opción Backend de Bitcoin, para que el nodo pueda seguir la cadena SHA256d en el servicio Knots (pre-RDTS).
@@ -54,6 +58,8 @@ Core Lightning 26.06.9 con las acciones de Recuperación, para trasladar a la ca
 
 Instálelo sobre Core Lightning 26.6.9. Cuando termine aquí, instale encima la versión BLAKE2b de Core Lightning. Desde esta versión no se puede volver a la versión original.`,
     de_DE: `Erfordert StartOS 0.4.1 oder neuer.
+
+Fügt Wiederherstellung: Diagnose exportieren hinzu, eine Datei für die Person, die Ihnen bei einem Wiederherstellungsproblem hilft.
 
 Core Lightning 26.06.9 mit den Wiederherstellungsaktionen, um einen Knoten mit Kanälen oder Coins aus der Zeit vor der Trennung der Ketten auf die BLAKE2b-Kette zu bringen.
 
@@ -64,6 +70,8 @@ Core Lightning 26.06.9 mit den Wiederherstellungsaktionen, um einen Knoten mit K
 Installieren Sie es über Core Lightning 26.6.9. Wenn Sie hier fertig sind, installieren Sie den BLAKE2b-Build von Core Lightning darüber. Von diesem Build aus ist kein Weg zurück zum ursprünglichen Build möglich.`,
     pl_PL: `Wymaga StartOS 0.4.1 lub nowszego.
 
+Dodaje Odzyskiwanie: Eksportuj diagnostykę, plik do wysłania osobie, która pomaga przy problemie z odzyskiwaniem.
+
 Core Lightning 26.06.9 z akcjami odzyskiwania, służącymi do przeniesienia na łańcuch BLAKE2b węzła, który ma kanały lub monety sprzed rozdzielenia łańcuchów.
 
 - Ustawienia ogólne zawierają wybór Backend Bitcoin, dzięki czemu węzeł może nadal podążać za łańcuchem SHA256d w usłudze Knots (pre-RDTS).
@@ -72,6 +80,8 @@ Core Lightning 26.06.9 z akcjami odzyskiwania, służącymi do przeniesienia na 
 
 Zainstaluj tę wersję na Core Lightning 26.6.9. Po zakończeniu pracy tutaj zainstaluj na niej wersję BLAKE2b Core Lightning. Z tej wersji nie można wrócić do wersji standardowej.`,
     fr_FR: `Nécessite StartOS 0.4.1 ou une version ultérieure.
+
+Ajoute Récupération : Exporter le diagnostic, un fichier à envoyer à la personne qui vous aide pour un problème de récupération.
 
 Core Lightning 26.06.9 avec les actions de récupération, pour amener sur la chaîne BLAKE2b un nœud qui possède des canaux ou des pièces antérieurs à la séparation des chaînes.
 
@@ -82,7 +92,7 @@ Core Lightning 26.06.9 avec les actions de récupération, pour amener sur la ch
 Installez-la par-dessus Core Lightning 26.6.9. Une fois terminé ici, installez par-dessus la version BLAKE2b de Core Lightning. Il n'est pas possible de revenir à la version standard depuis celle-ci.`,
   },
   migrations: {
-    // #recovery:26.6.9:0 differs only in the SDK (3.0.6); nothing to migrate.
+    // Earlier revisions of this flavor (SDK 3.0.6; no diagnostics action): nothing to migrate.
     up: async () => {},
     down: IMPOSSIBLE,
     other: {

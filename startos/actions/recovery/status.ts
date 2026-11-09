@@ -9,8 +9,9 @@ import {
   pathVerdict,
   readState,
   row,
+  State,
 } from '../../recovery/report'
-import { withTools } from '../../recovery/tools'
+import { Tools, withTools } from '../../recovery/tools'
 import { sdk } from '../../sdk'
 
 export const recoveryStatus = sdk.Action.withoutInput(
@@ -28,25 +29,32 @@ export const recoveryStatus = sdk.Action.withoutInput(
   }),
 
   async ({ effects }): Promise<T.ActionResult & { version: '1' }> =>
-    withTools(effects, 'recovery-status', async (tools) => {
-      const state = await readState(tools)
-      const offline = !!(await storeJson.read((s) => s.offline).once())
-      return {
-        version: '1',
-        title: i18n('Recovery: Status'),
-        message: [...chainVerdict(tools, state), ...pathVerdict(state)].join(
-          '\n\n',
-        ),
-        result: {
-          type: 'group',
-          value: [
-            group(i18n('Chain'), [
-              ...chainRows(tools, state),
-              row(i18n('Offline mode'), offline ? 'on' : 'off'),
-            ]),
-            group(i18n('Channels and wallet'), nodeRows(state)),
-          ],
-        },
-      }
-    }),
+    withTools(effects, 'recovery-status', async (tools) =>
+      statusResult(tools, await readState(tools)),
+    ),
 )
+
+/** The Status result, also written into Recovery: Export Diagnostics. */
+export async function statusResult(
+  tools: Tools,
+  state: State,
+): Promise<T.ActionResult & { version: '1' }> {
+  const offline = !!(await storeJson.read((s) => s.offline).once())
+  return {
+    version: '1',
+    title: i18n('Recovery: Status'),
+    message: [...chainVerdict(tools, state), ...pathVerdict(state)].join(
+      '\n\n',
+    ),
+    result: {
+      type: 'group',
+      value: [
+        group(i18n('Chain'), [
+          ...chainRows(tools, state),
+          row(i18n('Offline mode'), offline ? 'on' : 'off'),
+        ]),
+        group(i18n('Channels and wallet'), nodeRows(state)),
+      ],
+    },
+  }
+}

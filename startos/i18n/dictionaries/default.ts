@@ -483,6 +483,15 @@ const dict = {
 
   // Recovery: still running
   'No answer yet. The close has not failed: Core Lightning is still working on it. Run Recovery: Status later.': 448,
+
+  // Recovery: Export Diagnostics
+  'Recovery: Export Diagnostics': 449,
+  'Writes one file with everything needed to look into a recovery problem: the Status report, the chain comparison, every channel and its close transactions, the wallet, the recovery log and the crash logs. Send it to the person helping you with the recovery. Changes nothing.': 450,
+  'With transaction ids and amounts included, whoever reads the file can see these coins and their history on the chain. Share it only with people you trust, or turn that option off. The file never contains your seed, hsm_secret, runes, passwords or VPN keys.': 451,
+  'Include Transaction IDs and Amounts': 452,
+  'On: the file shows transaction ids, addresses, short channel ids and amounts, which is usually what it takes to find the cause. Off: they are replaced by placeholders, and the crash log lines are left out.': 453,
+  'Download the file and send it to the person helping you with the recovery. It includes transaction ids, addresses and amounts.': 454,
+  'Download the file and send it to the person helping you with the recovery. Transaction ids, addresses, short channel ids and amounts are replaced by placeholders.': 455,
 } as const
 
 /**
