@@ -482,7 +482,7 @@ const dict = {
   'STILL RUNNING: ${what} has not answered within the time this action waits. It has not failed: Core Lightning is still working on it. Do not start it again; follow the service logs and run Recovery: Status later.': 447,
 
   // Recovery: still running
-  'No answer yet. The close has not failed: Core Lightning is still working on it. Run Recovery: Status later.': 448,
+  'No answer within the time StartOS gives an action. The close has not failed: Core Lightning is still working on it. Run this action again in a few minutes to save its close transaction.': 448,
 
   // Recovery: Export Diagnostics
   'Recovery: Export Diagnostics': 449,
@@ -492,6 +492,19 @@ const dict = {
   'On: the file shows transaction ids, addresses, short channel ids and amounts, which is usually what it takes to find the cause. Off: they are replaced by placeholders, and the crash log lines are left out.': 453,
   'Download the file and send it to the person helping you with the recovery. It includes transaction ids, addresses and amounts.': 454,
   'Download the file and send it to the person helping you with the recovery. Transaction ids, addresses, short channel ids and amounts are replaced by placeholders.': 455,
+
+  // Recovery: Close All Channels, catching up on an earlier run
+  State: 456,
+  'Close transactions of channels already closing were saved, and the lists in recovery/final were refreshed.': 457,
+
+  // Recovery: Status, never-funded channels and the next step
+  'NEVER FUNDED: ${count} channel(s). Their funding transaction never confirmed, so there is nothing to close or replay.': 458,
+  'NEXT: Recovery: Snapshot, then Recovery: Close All Channels.': 459,
+  'NEXT: wait. ${count} closing channel(s) still have outputs to resolve; the longest wait is ${blocks} block(s), about ${hours} hour(s) at 10 minutes a block. Then run Recovery: Status again.': 460,
+  'NEXT: wait. ${count} closing channel(s) still have outputs to resolve. Run Recovery: Status again later.': 461,
+  'NEXT: wait for the close and withdrawal transactions to confirm, then run Recovery: Status again.': 462,
+  'NEXT: Recovery: Snapshot, then Recovery: Withdraw to SHA256d Wallet.': 463,
+  'NEXT: take a last Recovery: Snapshot, then install the BLAKE2b build of Core Lightning over this one.': 464,
 } as const
 
 /**

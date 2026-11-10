@@ -66,6 +66,14 @@ export type ChainComparison = {
 }
 
 /**
+ * Rows written by older Core Lightning versions hold the hash in internal
+ * byte order, the reverse of what bitcoind shows: the same block either way.
+ */
+const sameBlock = (database: string, backend: string) =>
+  database === backend ||
+  Buffer.from(database, 'hex').reverse().toString('hex') === backend
+
+/**
  * Compares the blocks in lightningd's database with the backend's, at the
  * heights around the split and at the database tip.
  */
@@ -104,7 +112,9 @@ export async function compareChains(
       height > backendTip
         ? null
         : await tools.bitcoinText('getblockhash', [height])
-    if (backend !== database) mismatches.push({ height, database, backend })
+    if (backend === null || !sameBlock(database, backend)) {
+      mismatches.push({ height, database, backend })
+    }
   }
 
   return {

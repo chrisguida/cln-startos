@@ -10,7 +10,10 @@ import { SplitHeights } from './heights'
 import {
   fetchLists,
   htlcCount,
+  isOpen,
+  isResolved,
   Lists,
+  Paths,
   recoveryPaths,
   sat,
   shortId,
@@ -274,8 +277,67 @@ export function pathVerdict(state: State): string[] {
       ),
     )
   }
+  if (paths.neverFunded) {
+    lines.push(
+      i18n(
+        'NEVER FUNDED: ${count} channel(s). Their funding transaction never confirmed, so there is nothing to close or replay.',
+        { count: String(paths.neverFunded) },
+      ),
+    )
+  }
   if (!lines.length) lines.push(i18n('This node has no channels.'))
+  lines.push(nextStep(lists, paths))
   return lines
+}
+
+/** The step of the stock-build tutorial this node is ready for. */
+function nextStep(lists: Lists, paths: Paths): string {
+  if (paths.open.length) {
+    return i18n('NEXT: Recovery: Snapshot, then Recovery: Close All Channels.')
+  }
+  const closing = lists.listpeerchannels.channels.filter(
+    (c) => !isOpen(c) && !isResolved(c),
+  )
+  if (closing.length) {
+    // "in 143 blocks will spend DELAYED_OUTPUT_TO_US ...": the CSV wait.
+    const blocks = Math.max(
+      0,
+      ...closing.flatMap((c) =>
+        (c.status ?? []).flatMap((s) =>
+          [...s.matchAll(/in (\d+) blocks? will spend/g)].map((m) =>
+            Number(m[1]),
+          ),
+        ),
+      ),
+    )
+    return blocks
+      ? i18n(
+          'NEXT: wait. ${count} closing channel(s) still have outputs to resolve; the longest wait is ${blocks} block(s), about ${hours} hour(s) at 10 minutes a block. Then run Recovery: Status again.',
+          {
+            count: String(closing.length),
+            blocks: String(blocks),
+            hours: String(Math.ceil(blocks / 6)),
+          },
+        )
+      : i18n(
+          'NEXT: wait. ${count} closing channel(s) still have outputs to resolve. Run Recovery: Status again later.',
+          { count: String(closing.length) },
+        )
+  }
+  const totals = walletTotals(lists.listfunds.outputs)
+  if (paths.closedUnknown || totals.unconfirmed || totals.immature) {
+    return i18n(
+      'NEXT: wait for the close and withdrawal transactions to confirm, then run Recovery: Status again.',
+    )
+  }
+  if (totals.confirmed) {
+    return i18n(
+      'NEXT: Recovery: Snapshot, then Recovery: Withdraw to SHA256d Wallet.',
+    )
+  }
+  return i18n(
+    'NEXT: take a last Recovery: Snapshot, then install the BLAKE2b build of Core Lightning over this one.',
+  )
 }
 
 export function nodeRows(state: State): T.ActionResultMember[] {

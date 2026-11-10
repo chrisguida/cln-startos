@@ -448,7 +448,7 @@ export default {
     447: 'SIGUE EN EJECUCIÓN: ${what} no ha respondido dentro del tiempo que espera esta acción. No ha fallado: Core Lightning sigue trabajando en ello. No lo inicie de nuevo; siga los registros del servicio y ejecute Recuperación: Estado más tarde.',
 
     // Recovery: still running
-    448: 'Todavía sin respuesta. El cierre no ha fallado: Core Lightning sigue trabajando en él. Ejecute Recuperación: Estado más tarde.',
+    448: 'Sin respuesta dentro del tiempo que StartOS concede a una acción. El cierre no ha fallado: Core Lightning sigue trabajando en él. Ejecute esta acción de nuevo dentro de unos minutos para guardar su transacción de cierre.',
 
     // Recovery: Export Diagnostics
     449: 'Recuperación: Exportar diagnóstico',
@@ -458,6 +458,15 @@ export default {
     453: 'Activado: el archivo muestra identificadores de transacción, direcciones, identificadores cortos de canal e importes, que suelen ser necesarios para encontrar la causa. Desactivado: se sustituyen por marcadores y se omiten las líneas de los registros de fallos.',
     454: 'Descargue el archivo y envíelo a la persona que le ayuda con la recuperación. Incluye identificadores de transacción, direcciones e importes.',
     455: 'Descargue el archivo y envíelo a la persona que le ayuda con la recuperación. Los identificadores de transacción, las direcciones, los identificadores cortos de canal y los importes se sustituyen por marcadores.',
+    456: 'Estado',
+    457: 'Se guardaron las transacciones de cierre de los canales que ya se estaban cerrando y se actualizaron las listas de recovery/final.',
+    458: 'SIN FINANCIAR: ${count} canal(es). Su transacción de financiación nunca se confirmó, así que no hay nada que cerrar ni repetir.',
+    459: 'SIGUIENTE: Recuperación: Instantánea y después Recuperación: Cerrar todos los canales.',
+    460: 'SIGUIENTE: esperar. ${count} canal(es) en cierre aún tienen salidas por resolver; la espera más larga es de ${blocks} bloque(s), unas ${hours} hora(s) a 10 minutos por bloque. Después ejecute de nuevo Recuperación: Estado.',
+    461: 'SIGUIENTE: esperar. ${count} canal(es) en cierre aún tienen salidas por resolver. Ejecute de nuevo Recuperación: Estado más tarde.',
+    462: 'SIGUIENTE: esperar a que se confirmen las transacciones de cierre y de retirada, y después ejecutar de nuevo Recuperación: Estado.',
+    463: 'SIGUIENTE: Recuperación: Instantánea y después Recuperación: Retirar al monedero SHA256d.',
+    464: 'SIGUIENTE: una última Recuperación: Instantánea y después instalar encima la versión BLAKE2b de Core Lightning.',
   },
   de_DE: {
     0: 'Core Lightning wird gestartet!',
@@ -906,7 +915,7 @@ export default {
     447: 'LÄUFT NOCH: ${what} hat nicht innerhalb der Zeit geantwortet, die diese Aktion wartet. Der Vorgang ist nicht fehlgeschlagen: Core Lightning arbeitet noch daran. Starten Sie ihn nicht erneut; verfolgen Sie die Logs des Dienstes und führen Sie später Wiederherstellung: Status aus.',
 
     // Recovery: still running
-    448: 'Noch keine Antwort. Die Schließung ist nicht fehlgeschlagen: Core Lightning arbeitet noch daran. Führen Sie später Wiederherstellung: Status aus.',
+    448: 'Keine Antwort innerhalb der Zeit, die StartOS einer Aktion gibt. Die Schließung ist nicht fehlgeschlagen: Core Lightning arbeitet noch daran. Führen Sie diese Aktion in einigen Minuten erneut aus, um ihre Schließtransaktion zu speichern.',
 
     // Recovery: Export Diagnostics
     449: 'Wiederherstellung: Diagnose exportieren',
@@ -916,6 +925,15 @@ export default {
     453: 'An: Die Datei zeigt Transaktions-IDs, Adressen, kurze Kanal-IDs und Beträge, was meist nötig ist, um die Ursache zu finden. Aus: Sie werden durch Platzhalter ersetzt, und die Zeilen der Absturzprotokolle entfallen.',
     454: 'Laden Sie die Datei herunter und senden Sie sie an die Person, die Ihnen bei der Wiederherstellung hilft. Sie enthält Transaktions-IDs, Adressen und Beträge.',
     455: 'Laden Sie die Datei herunter und senden Sie sie an die Person, die Ihnen bei der Wiederherstellung hilft. Transaktions-IDs, Adressen, kurze Kanal-IDs und Beträge sind durch Platzhalter ersetzt.',
+    456: 'Zustand',
+    457: 'Die Schließtransaktionen der Kanäle, die bereits geschlossen werden, wurden gespeichert, und die Listen in recovery/final wurden aktualisiert.',
+    458: 'NIE FINANZIERT: ${count} Kanal/Kanäle. Ihre Finanzierungstransaktion wurde nie bestätigt; es gibt nichts zu schließen oder zu wiederholen.',
+    459: 'NÄCHSTER SCHRITT: Wiederherstellung: Snapshot, dann Wiederherstellung: Alle Kanäle schließen.',
+    460: 'NÄCHSTER SCHRITT: warten. ${count} Kanal/Kanäle in Schließung haben noch offene Ausgaben; die längste Wartezeit beträgt ${blocks} Block/Blöcke, etwa ${hours} Stunde(n) bei 10 Minuten pro Block. Danach Wiederherstellung: Status erneut ausführen.',
+    461: 'NÄCHSTER SCHRITT: warten. ${count} Kanal/Kanäle in Schließung haben noch offene Ausgaben. Führen Sie später Wiederherstellung: Status erneut aus.',
+    462: 'NÄCHSTER SCHRITT: warten, bis die Schließ- und Auszahlungstransaktionen bestätigt sind, dann Wiederherstellung: Status erneut ausführen.',
+    463: 'NÄCHSTER SCHRITT: Wiederherstellung: Snapshot, dann Wiederherstellung: Auszahlung an SHA256d-Wallet.',
+    464: 'NÄCHSTER SCHRITT: ein letzter Wiederherstellung: Snapshot, dann die BLAKE2b-Version von Core Lightning darüber installieren.',
   },
   pl_PL: {
     0: 'Uruchamianie Core Lightning!',
@@ -1364,7 +1382,7 @@ export default {
     447: 'NADAL TRWA: ${what} – brak odpowiedzi w czasie, przez który ta akcja czeka. Operacja nie zakończyła się niepowodzeniem: Core Lightning nadal nad nią pracuje. Nie należy uruchamiać jej ponownie; należy śledzić logi usługi i później uruchomić Odzyskiwanie: Stan.',
 
     // Recovery: still running
-    448: 'Brak odpowiedzi do tej pory. Zamknięcie nie zakończyło się niepowodzeniem: Core Lightning nadal nad nim pracuje. Później należy uruchomić Odzyskiwanie: Stan.',
+    448: 'Brak odpowiedzi w czasie, jaki StartOS daje akcji. Zamknięcie nie zakończyło się niepowodzeniem: Core Lightning nadal nad nim pracuje. Za kilka minut należy uruchomić tę akcję ponownie, aby zapisać jego transakcję zamknięcia.',
 
     // Recovery: Export Diagnostics
     449: 'Odzyskiwanie: Eksportuj diagnostykę',
@@ -1374,6 +1392,15 @@ export default {
     453: 'Włączone: plik pokazuje identyfikatory transakcji, adresy, krótkie identyfikatory kanałów i kwoty, co zwykle jest potrzebne do znalezienia przyczyny. Wyłączone: zastępowane są symbolami zastępczymi, a wiersze dzienników awarii są pomijane.',
     454: 'Pobierz plik i wyślij go osobie, która pomaga w odzyskiwaniu. Zawiera identyfikatory transakcji, adresy i kwoty.',
     455: 'Pobierz plik i wyślij go osobie, która pomaga w odzyskiwaniu. Identyfikatory transakcji, adresy, krótkie identyfikatory kanałów i kwoty są zastąpione symbolami zastępczymi.',
+    456: 'Stan',
+    457: 'Zapisano transakcje zamknięcia kanałów, które są już zamykane, i odświeżono listy w recovery/final.',
+    458: 'NIGDY NIESFINANSOWANE: kanały: ${count}. Ich transakcja finansująca nigdy nie została potwierdzona, więc nie ma czego zamykać ani powtarzać.',
+    459: 'NASTĘPNY KROK: Odzyskiwanie: Migawka, potem Odzyskiwanie: Zamknij wszystkie kanały.',
+    460: 'NASTĘPNY KROK: czekać. Zamykane kanały z nierozstrzygniętymi wyjściami: ${count}; najdłuższe oczekiwanie to ${blocks} blok(ów), około ${hours} godz. przy 10 minutach na blok. Potem należy ponownie uruchomić Odzyskiwanie: Stan.',
+    461: 'NASTĘPNY KROK: czekać. Zamykane kanały z nierozstrzygniętymi wyjściami: ${count}. Później należy ponownie uruchomić Odzyskiwanie: Stan.',
+    462: 'NASTĘPNY KROK: poczekać na potwierdzenie transakcji zamknięcia i wypłaty, potem ponownie uruchomić Odzyskiwanie: Stan.',
+    463: 'NASTĘPNY KROK: Odzyskiwanie: Migawka, potem Odzyskiwanie: Wypłata do portfela SHA256d.',
+    464: 'NASTĘPNY KROK: ostatnia Odzyskiwanie: Migawka, potem zainstalować na tej wersji wersję BLAKE2b Core Lightning.',
   },
   fr_FR: {
     0: 'Démarrage de Core Lightning !',
@@ -1822,7 +1849,7 @@ export default {
     447: "TOUJOURS EN COURS : ${what} n'a pas répondu dans le délai d'attente de cette action. L'opération n'a pas échoué : Core Lightning y travaille encore. Ne la relancez pas ; suivez les journaux du service et exécutez Récupération : État plus tard.",
 
     // Recovery: still running
-    448: "Pas encore de réponse. La fermeture n'a pas échoué : Core Lightning y travaille encore. Exécutez Récupération : État plus tard.",
+    448: "Pas de réponse dans le temps que StartOS accorde à une action. La fermeture n'a pas échoué : Core Lightning y travaille encore. Exécutez de nouveau cette action dans quelques minutes pour enregistrer sa transaction de fermeture.",
 
     // Recovery: Export Diagnostics
     449: 'Récupération : Exporter le diagnostic',
@@ -1832,5 +1859,14 @@ export default {
     453: 'Activé : le fichier montre les identifiants de transaction, les adresses, les identifiants courts de canal et les montants, ce qui est généralement nécessaire pour trouver la cause. Désactivé : ils sont remplacés par des marqueurs, et les lignes des journaux de plantage sont omises.',
     454: 'Téléchargez le fichier et envoyez-le à la personne qui vous aide pour la récupération. Il contient des identifiants de transaction, des adresses et des montants.',
     455: 'Téléchargez le fichier et envoyez-le à la personne qui vous aide pour la récupération. Les identifiants de transaction, les adresses, les identifiants courts de canal et les montants sont remplacés par des marqueurs.',
+    456: 'État',
+    457: 'Les transactions de fermeture des canaux déjà en cours de fermeture ont été enregistrées et les listes de recovery/final ont été actualisées.',
+    458: "JAMAIS FINANCÉS : ${count} canal/canaux. Leur transaction de financement n'a jamais été confirmée ; rien à fermer ni à rejouer.",
+    459: 'ÉTAPE SUIVANTE : Récupération : Instantané, puis Récupération : Fermer tous les canaux.',
+    460: "ÉTAPE SUIVANTE : attendre. ${count} canal/canaux en fermeture ont encore des sorties à résoudre ; l'attente la plus longue est de ${blocks} bloc(s), environ ${hours} heure(s) à 10 minutes par bloc. Exécutez ensuite de nouveau Récupération : État.",
+    461: 'ÉTAPE SUIVANTE : attendre. ${count} canal/canaux en fermeture ont encore des sorties à résoudre. Exécutez de nouveau Récupération : État plus tard.',
+    462: 'ÉTAPE SUIVANTE : attendre la confirmation des transactions de fermeture et de retrait, puis exécuter de nouveau Récupération : État.',
+    463: 'ÉTAPE SUIVANTE : Récupération : Instantané, puis Récupération : Retirer vers le portefeuille SHA256d.',
+    464: 'ÉTAPE SUIVANTE : un dernier Récupération : Instantané, puis installer par-dessus la version BLAKE2b de Core Lightning.',
   },
 } satisfies Record<string, LangDict>

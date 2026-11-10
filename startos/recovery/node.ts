@@ -102,13 +102,19 @@ export const closeHeight = (
   funding: { funding_txid: string; funding_outnum: number },
   transactions: WalletTx[],
 ) => {
-  const spend = transactions.find((t) =>
-    t.inputs.some(
-      (i) =>
-        i.txid === funding.funding_txid && i.index === funding.funding_outnum,
-    ),
-  )
-  return spend ? spend.blockheight : null
+  // A stale commitment the wallet saw but no block took stays at height 0
+  // next to the close that confirmed: the confirmed one is the close.
+  const heights = transactions
+    .filter((t) =>
+      t.inputs.some(
+        (i) =>
+          i.txid === funding.funding_txid && i.index === funding.funding_outnum,
+      ),
+    )
+    .map((t) => t.blockheight)
+  if (!heights.length) return null
+  const confirmed = heights.filter((h) => h > 0)
+  return confirmed.length ? Math.min(...confirmed) : 0
 }
 
 export type Paths = {
@@ -120,6 +126,8 @@ export type Paths = {
   closedAfter: number
   /** Close seen but not yet in a block, or not in the wallet's list. */
   closedUnknown: number
+  /** Funding never confirmed: no short channel id and nothing spent it. */
+  neverFunded: number
 }
 
 /** Sorts every channel the node knows into the three recovery situations. */
@@ -134,13 +142,15 @@ export function recoveryPaths(
     closedBefore: 0,
     closedAfter: 0,
     closedUnknown: 0,
+    neverFunded: 0,
   }
   for (const c of [
     ...channels.filter((c) => !isOpen(c)),
     ...lists.listclosedchannels.closedchannels,
   ]) {
     const height = closeHeight(c, transactions)
-    if (!height || !heights) paths.closedUnknown++
+    if (height === null && !c.short_channel_id) paths.neverFunded++
+    else if (!height || !heights) paths.closedUnknown++
     else if (height < heights.split) paths.closedBefore++
     else paths.closedAfter++
   }

@@ -6,7 +6,13 @@ import {
   mempoolFee,
   perkb,
 } from '../../recovery/fees'
-import { htlcCount, isOpen, PeerChannel, shortId } from '../../recovery/node'
+import {
+  htlcCount,
+  isOpen,
+  Lists,
+  PeerChannel,
+  shortId,
+} from '../../recovery/node'
 import {
   chainRecord,
   group,
@@ -23,20 +29,29 @@ const { InputSpec, Value } = sdk
 // `txs`/`txids` are arrays: a close can be more than one transaction.
 type CloseResult = { type: string; txids?: string[]; txs?: string[] }
 
+// StartOS 0.4.1 stops an action 120 s after it starts (RunAction in
+// core/src/service/action.rs) and nothing after that point runs: no saved
+// transaction, no refreshed lists, no result. Everything here fits in 100 s,
+// and the closes get what is left after keeping `tailMs` for that work.
+const budgetMs = 100_000
+const tailMs = 25_000
+const maxTimeout = 60
+
 const closeChannel = async (
   tools: Tools,
   channel: PeerChannel,
   timeout: number,
   feerange: [string, string],
+  waitMs: number,
 ) => {
   try {
     // `close` answers once the close transaction is broadcast: at once for a
     // peer that cooperates, after `unilateraltimeout` seconds for one that
-    // does not. The client waits for the longer of the two, and a little more.
+    // does not. If the client gives up first, lightningd carries on.
     const res = await tools.lightning<CloseResult>(
       'close',
       { id: channel.channel_id, unilateraltimeout: timeout, feerange },
-      (timeout + 120) * 1000,
+      waitMs,
     )
     return { channel, res, error: null, timedOut: false }
   } catch (e) {
@@ -47,6 +62,28 @@ const closeChannel = async (
       timedOut: e instanceof CliError && e.timedOut,
     }
   }
+}
+
+/**
+ * The wallet transactions spending each closing channel's funding output,
+ * saved as raw files. Catches up on closes an earlier run did not live to save.
+ */
+async function saveCloseTxs(lists: Lists, skip: Set<string>) {
+  const out: { channel: PeerChannel; txid: string; rawtx: string }[] = []
+  for (const channel of lists.listpeerchannels.channels.filter(
+    (c) => !isOpen(c),
+  )) {
+    for (const t of lists.listtransactions.transactions) {
+      const spends = t.inputs.some(
+        (i) =>
+          i.txid === channel.funding_txid && i.index === channel.funding_outnum,
+      )
+      if (!spends || skip.has(t.hash)) continue
+      await saveRawTx('close', t.hash, t.rawtx)
+      out.push({ channel, txid: t.hash, rawtx: t.rawtx })
+    }
+  }
+  return out
 }
 
 export const recoveryCloseAll = sdk.Action.withInput(
@@ -72,9 +109,9 @@ export const recoveryCloseAll = sdk.Action.withInput(
         'How long to wait for each peer to agree to a cooperative close before closing unilaterally. This action runs until every channel has answered, so it can take this long.',
       ),
       required: true,
-      default: 120,
+      default: 30,
       min: 1,
-      max: 3600,
+      max: maxTimeout,
       integer: true,
       units: 'seconds',
     }),
@@ -84,7 +121,9 @@ export const recoveryCloseAll = sdk.Action.withInput(
         'The lowest feerate this node accepts for a cooperative close. The close transaction must pay at least 1 sat per vbyte by itself to be replayed on the other chain; values below 1100 are refused.',
       ),
       required: true,
-      default: 1500,
+      // The lowest the replay allows: a higher floor can refuse a peer's
+      // offer by a satoshi and turn a cooperative close into a unilateral one.
+      default: 1100,
       min: 1,
       integer: true,
       units: 'sat per 1000 vbytes',
@@ -101,6 +140,8 @@ export const recoveryCloseAll = sdk.Action.withInput(
   async ({ effects }) => ({}),
 
   async ({ effects, input }): Promise<T.ActionResult & { version: '1' }> => {
+    const started = Date.now()
+    const timeout = Math.min(input['unilateral-timeout'], maxTimeout)
     const floor = input['feerange-floor']
     assertAboveFloor(floor)
     return withTools(effects, 'recovery-close-all', async (tools) => {
@@ -119,11 +160,45 @@ export const recoveryCloseAll = sdk.Action.withInput(
         )
       }
       if (!open.length) {
+        // Nothing to close, but an earlier run may have been stopped before
+        // it saved its close transactions: save them now.
+        const lists = await refreshFinal(tools, chainRecord(tools, state))
+        const saved = await saveCloseTxs(lists, new Set())
+        const closing = lists.listpeerchannels.channels.filter(
+          (c) => !isOpen(c),
+        )
+        await audit('close-all-catch-up', {
+          saved: saved.map((s) => s.txid),
+        })
         return {
           version: '1',
           title: i18n('Nothing to close'),
-          message: i18n('This node has no open channels.'),
-          result: null,
+          message: [
+            i18n('This node has no open channels.'),
+            ...(closing.length
+              ? [
+                  i18n(
+                    'Close transactions of channels already closing were saved, and the lists in recovery/final were refreshed.',
+                  ),
+                ]
+              : []),
+          ].join('\n\n'),
+          result: closing.length
+            ? {
+                type: 'group',
+                value: closing.map((c) =>
+                  group(`${i18n('Channel')} ${shortId(c.channel_id)}`, [
+                    row(i18n('State'), c.state),
+                    ...saved
+                      .filter((s) => s.channel.channel_id === c.channel_id)
+                      .flatMap((s) => [
+                        row(i18n('Transaction ID'), s.txid, true),
+                        row(i18n('Raw transaction'), s.rawtx, true),
+                      ]),
+                  ]),
+                ),
+              }
+            : null,
         }
       }
 
@@ -141,15 +216,15 @@ export const recoveryCloseAll = sdk.Action.withInput(
       const feerange: [string, string] = [perkb(floor), perkb(ceiling)]
       await audit('close-all', {
         channels: open.map((c) => c.channel_id),
-        timeout: input['unilateral-timeout'],
+        timeout,
         feerange,
       })
 
+      const waitMs = Math.max(5_000, started + budgetMs - tailMs - Date.now())
       const results = await Promise.all(
-        open.map((c) =>
-          closeChannel(tools, c, input['unilateral-timeout'], feerange),
-        ),
+        open.map((c) => closeChannel(tools, c, timeout, feerange, waitMs)),
       )
+      const lateFor = () => started + budgetMs - Date.now() < 10_000
 
       const rows: T.ActionResultMember[] = []
       for (const { channel, res, error, timedOut } of results) {
@@ -161,7 +236,7 @@ export const recoveryCloseAll = sdk.Action.withInput(
                 ? row(
                     i18n('Still running'),
                     i18n(
-                      'No answer yet. The close has not failed: Core Lightning is still working on it. Run Recovery: Status later.',
+                      'No answer within the time StartOS gives an action. The close has not failed: Core Lightning is still working on it. Run this action again in a few minutes to save its close transaction.',
                     ),
                   )
                 : row(i18n('Error'), error ?? '-'),
@@ -174,15 +249,22 @@ export const recoveryCloseAll = sdk.Action.withInput(
         for (const [i, txid] of txids.entries()) {
           const tx = res.txs?.[i]
           if (tx) await saveRawTx('close', txid, tx)
-          members.push(
-            row(i18n('Transaction ID'), txid, true),
-            row(i18n('Fee paid'), describeFee(await mempoolFee(tools, txid))),
-            row(i18n('Raw transaction'), tx ?? '-', !!tx),
-          )
+          members.push(row(i18n('Transaction ID'), txid, true))
+          // The fee is only shown; skip it rather than run out of time.
+          if (!lateFor()) {
+            members.push(
+              row(i18n('Fee paid'), describeFee(await mempoolFee(tools, txid))),
+            )
+          }
+          members.push(row(i18n('Raw transaction'), tx ?? '-', !!tx))
         }
         rows.push(group(name, members))
       }
-      await refreshFinal(tools, chainRecord(tools, state))
+      const lists = await refreshFinal(tools, chainRecord(tools, state))
+      await saveCloseTxs(
+        lists,
+        new Set(results.flatMap((r) => r.res?.txids ?? [])),
+      )
       await audit(
         'close-all-result',
         results.map((r) => ({
