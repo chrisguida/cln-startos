@@ -70,9 +70,19 @@ WORKDIR /tmp/rust-teos
 RUN cargo install --locked --path teos && \
     cargo install --locked --path watchtower-plugin
 
-# lightningd from the signed release tarballs. These hashes come from
-# SHA256SUMS-v26.06.9 and -arm64, GPG-verified against maintainer key
-# 4E4A142F8BD3C38A56B362ED578CAC08472545C5.
+# Two Core Lightning builds, each under its own prefix. lightningd finds its
+# subdaemons and builtin plugins relative to its own binary, so each prefix is
+# complete on its own.
+#
+# - /opt/cln-sha256d: upstream v26.06.9. Runs the node's existing database on
+#   the SHA256d chain during a recovery (Close All, Withdraw), and never opens
+#   a database the fork has upgraded.
+# - /usr/local: privkeyio v26.06.10-blake2b.1, which reads the 164-byte BLAKE2b
+#   block header and signs wallet spends with the unified sighash. Runs the
+#   BLAKE2b instance during a recovery, and the node afterwards.
+#
+# Upstream hashes come from SHA256SUMS-v26.06.9 and -arm64, GPG-verified
+# against maintainer key 4E4A142F8BD3C38A56B362ED578CAC08472545C5.
 FROM base AS lightningd-tarball
 ARG TARGETARCH
 ARG CLN_VERSION
@@ -92,8 +102,8 @@ RUN set -eu; \
     TARBALL="clightning-${CLN_VERSION}-Ubuntu-22.04-${TARGETARCH}.tar.xz"; \
     curl -fsSLO "https://github.com/ElementsProject/lightning/releases/download/${CLN_VERSION}/${TARBALL}"; \
     echo "${SHA}  ${TARBALL}" | sha256sum -c -; \
-    mkdir -p /dist/usr/local; \
-    tar -xf "$TARBALL" -C /dist/usr/local --strip-components=2
+    mkdir -p /dist/opt/cln-sha256d; \
+    tar -xf "$TARBALL" -C /dist/opt/cln-sha256d --strip-components=2
 
 # lightningd built from the release's source zip, for an arch upstream
 # published no tarball for. The hash is from the same signed SHA256SUMS.
@@ -111,12 +121,36 @@ RUN set -eu; \
     echo "${CLN_SRC_SHA256}  ${ZIP}" | sha256sum -c -; \
     unzip -q "$ZIP"; \
     cd "clightning-${CLN_VERSION}"; \
-    ./configure --prefix=/usr/local --disable-valgrind; \
+    ./configure --prefix=/opt/cln-sha256d --disable-valgrind; \
     make -j"$(nproc)" install-program DESTDIR=/dist RUST_PROFILE=release VERSION="${CLN_VERSION}"
 
 FROM lightningd-tarball AS lightningd-dist-amd64
 FROM lightningd-tarball AS lightningd-dist-arm64
 FROM lightningd-dist-${TARGETARCH} AS lightningd-dist
+
+# The BLAKE2b fork, from its signed release tarballs. The hashes come from
+# SHA256SUMS-v26.06.10-blake2b.1 and -arm64 of the privkeyio/lightning
+# release, GPG-verified against A47D99B6DB0D715D40C59A2023AE8A8EA7E24E38.
+FROM base AS lightningd-blake2b
+ARG TARGETARCH
+ARG BLAKE2B_REPO=privkeyio/lightning
+ARG BLAKE2B_VERSION=v26.06.10-blake2b.1
+ARG BLAKE2B_SHA256_AMD64=b3e7af0e376ae1f6b22f16c416a86474f6ab3c4d44c5aa6ef1a4a848a4cd9c72
+ARG BLAKE2B_SHA256_ARM64=7a54f4821acdf773c6f90ccb6fafdd2f5fda9e557f272311fc5b7b8862842ad6
+RUN apt-get update -qq && \
+    apt-get install -qq -y --no-install-recommends ca-certificates xz-utils && \
+    rm -rf /var/lib/apt/lists/*
+RUN set -eu; \
+    case "$TARGETARCH" in \
+      amd64) SHA="$BLAKE2B_SHA256_AMD64" ;; \
+      arm64) SHA="$BLAKE2B_SHA256_ARM64" ;; \
+      *) echo "no ${BLAKE2B_VERSION} build for TARGETARCH ${TARGETARCH}" >&2; exit 1 ;; \
+    esac; \
+    TARBALL="clightning-${BLAKE2B_VERSION}-Ubuntu-22.04-${TARGETARCH}.tar.xz"; \
+    curl -fsSLO "https://github.com/${BLAKE2B_REPO}/releases/download/${BLAKE2B_VERSION}/${TARBALL}"; \
+    echo "${SHA}  ${TARBALL}" | sha256sum -c -; \
+    mkdir -p /dist/usr/local; \
+    tar -xf "$TARBALL" -C /dist/usr/local --strip-components=2
 
 # bitcoin-cli, which CLN's own plugin-bcli and our check-synced health check
 # both exec; without it lightningd dies at startup with "The Bitcoin backend
@@ -159,7 +193,8 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 COPY --from=bitcoin-cli /usr/bin/bitcoin-cli /usr/bin/bitcoin-cli
-COPY --from=lightningd-dist /dist/usr/local /usr/local
+COPY --from=lightningd-blake2b /dist/usr/local /usr/local
+COPY --from=lightningd-dist /dist/opt/cln-sha256d /opt/cln-sha256d
 COPY --from=clboss /usr/local/bin/clboss /usr/local/libexec/c-lightning/plugins/
 COPY --from=builder-rust /root/.cargo/bin/teos* /usr/local/bin/
 COPY --from=builder-rust /root/.cargo/bin/watchtower-client /usr/local/libexec/c-lightning/plugins/

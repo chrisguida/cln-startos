@@ -1,12 +1,19 @@
-import { T } from '@start9labs/start-sdk'
+import { SubContainer, T } from '@start9labs/start-sdk'
 import { lightningNetwork } from '../fileModels/config'
+import { storeJson } from '../fileModels/store.json'
 import { sdk } from '../sdk'
 import {
   bitcoinBackend,
   bitcoinDataDir,
   bitcoindRpcBridge,
+  blake2bBackend,
+  blake2bCookieDir,
+  blake2bLightningDir,
+  blake2bPrefix,
+  blake2bRpcBridge,
   mountsWithBitcoin,
   rootDir,
+  sha256dPrefix,
 } from '../utils'
 
 /**
@@ -32,11 +39,27 @@ export class CliError extends Error {
 
 type Param = string | number | boolean | null | object
 
-export type Tools = {
+export type Outpoint = { txid: string; index: number }
+export const outpointKey = (o: Outpoint) => `${o.txid}:${o.index}`
+
+export type Chain = 'sha256d' | 'blake2b'
+
+/** One lightningd instance and the Bitcoin service it follows. */
+export type Instance = {
+  chain: Chain
+  /** Where its lightningd and lightning-cli are. */
+  prefix: string
+  lightningDir: string
   /** `bitcoin` or `regtest`: also the subdirectory holding the wallet. */
   network: string
   /** Package id of the Bitcoin service the calls go to. */
   backend: string
+  bridge: { host: string; port: number } | null
+  /** Where that service's RPC cookie is mounted. */
+  cookieDir: string
+}
+
+export type Tools = Instance & {
   /** lightning-cli with keyword parameters. Throws CliError. */
   lightning: <R>(
     method: string,
@@ -53,190 +76,279 @@ export type Tools = {
   ) => Promise<R>
   /** bitcoin-cli for the calls that print a bare string (hashes, raw hex). */
   bitcoinText: (method: string, params?: Param[]) => Promise<string>
+  /**
+   * Which of the given outputs the backend has unspent (mempool included):
+   * one exec for the whole list instead of one per output.
+   */
+  unspent: (outpoints: Outpoint[]) => Promise<Set<string>>
   /** A read-only query on lightningd's database; works with lightningd stopped. */
   sqlite: <R>(sql: string) => Promise<R[]>
   /** Copies lightningd's database with SQLite's online backup API. */
   sqliteBackup: (dest: string) => Promise<void>
 }
 
+/** The two instances of a recovery. `blake2b` is null until Close All has created it. */
+export type Chains = { sha256d: Tools; blake2b: Tools | null }
+
 const text = (out: string | Buffer) => String(out).trim()
 
-const databasePath = (network: string) =>
-  `${rootDir}/${network}/lightningd.sqlite3`
+export const databasePath = (
+  instance: Pick<Instance, 'lightningDir' | 'network'>,
+) => `${instance.lightningDir}/${instance.network}/lightningd.sqlite3`
 
 /**
- * Runs `fn` with lightning-cli, bitcoin-cli and sqlite3 in a temporary
- * subcontainer of the lightning image. It needs neither lightningd nor a
- * running service: only the calls that reach a daemon fail without it.
+ * The primary instance: the node's own data under rootDir, run by the SHA256d
+ * build during a recovery and by the fork afterwards.
  */
-export async function withTools<R>(
-  effects: T.Effects,
-  name: string,
-  fn: (tools: Tools) => Promise<R>,
-): Promise<R> {
-  const network = await lightningNetwork()
+export async function primaryInstance(effects: T.Effects): Promise<Instance> {
+  const store = await storeJson.read().once()
   const backend = await bitcoinBackend()
-  const bridge = await bitcoindRpcBridge(effects, false)
+  return {
+    chain: store?.recovery ? 'sha256d' : 'blake2b',
+    prefix: store?.recovery ? sha256dPrefix : blake2bPrefix,
+    lightningDir: rootDir,
+    network: await lightningNetwork(),
+    backend,
+    bridge: await bitcoindRpcBridge(effects, false),
+    cookieDir: bitcoinDataDir,
+  }
+}
 
-  return sdk.SubContainer.withTemp(
-    effects,
-    { imageId: 'lightning' },
-    mountsWithBitcoin(backend),
-    name,
-    async (sub) => {
-      const run = async (command: string[], timeoutMs: number) => {
-        const res = await sub.exec(command, { timeout: timeoutMs })
-        return {
-          ok: res.exitCode === 0,
-          timedOut: res.timedOutAfter !== null,
-          stdout: text(res.stdout),
-          stderr: text(res.stderr),
-        }
-      }
+/** The BLAKE2b instance of a recovery, or null while there is none. */
+export async function blake2bInstance(
+  effects: T.Effects,
+): Promise<Instance | null> {
+  const store = await storeJson.read().once()
+  if (!store?.recovery || !store.blake2b) return null
+  return {
+    chain: 'blake2b',
+    prefix: blake2bPrefix,
+    lightningDir: blake2bLightningDir,
+    network: await lightningNetwork(),
+    backend: blake2bBackend,
+    bridge: await blake2bRpcBridge(effects, false),
+    cookieDir: blake2bCookieDir(await bitcoinBackend()),
+  }
+}
 
-      const lightning = async <R>(
-        method: string,
-        params: Record<string, Param | undefined> = {},
-        timeoutMs = quick,
-      ): Promise<R> => {
-        // Every value goes over as a JSON literal: lightning-cli would
-        // otherwise read an all-digit string as a number.
-        const args = Object.entries(params).flatMap(([k, v]) =>
-          v === undefined ? [] : [`${k}=${JSON.stringify(v)}`],
-        )
-        const res = await run(
-          [
-            'lightning-cli',
-            `--lightning-dir=${rootDir}`,
-            '-k',
-            method,
-            ...args,
-          ],
-          timeoutMs,
-        )
-        // An RPC error is a JSON object on stdout with exit code 1, sometimes
-        // after `# ...` progress lines.
-        const start = res.stdout.indexOf('{')
-        let parsed: unknown = null
-        try {
-          parsed = start < 0 ? null : JSON.parse(res.stdout.slice(start))
-        } catch {
-          parsed = null
-        }
-        if (res.ok && parsed !== null) return parsed as R
-        const rpcError = parsed as { message?: unknown } | null
+/** Any subcontainer of the lightning image with the main volume mounted. */
+type Sub = Pick<SubContainer<T.SDKManifest>, 'exec'>
+
+/** The tools of one instance, run through a subcontainer that has its mounts. */
+export function makeTools(sub: Sub, instance: Instance): Tools {
+  const { prefix, lightningDir, network, backend, bridge, cookieDir } = instance
+  const run = async (command: string[], timeoutMs: number, input?: string) => {
+    const res = await sub.exec(command, { input, timeout: timeoutMs })
+    return {
+      ok: res.exitCode === 0,
+      // exec SIGKILLs the client at its timeout
+      timedOut: res.timedOutAfter !== null || res.exitSignal === 'SIGKILL',
+      stdout: text(res.stdout),
+      stderr: text(res.stderr),
+    }
+  }
+
+  const lightning = async <R>(
+    method: string,
+    params: Record<string, Param | undefined> = {},
+    timeoutMs = quick,
+  ): Promise<R> => {
+    // Every value goes over as a JSON literal: lightning-cli would
+    // otherwise read an all-digit string as a number.
+    const args = Object.entries(params).flatMap(([k, v]) =>
+      v === undefined ? [] : [`${k}=${JSON.stringify(v)}`],
+    )
+    const res = await run(
+      [
+        `${prefix}/bin/lightning-cli`,
+        `--lightning-dir=${lightningDir}`,
+        '-k',
+        method,
+        ...args,
+      ],
+      timeoutMs,
+    )
+    // An RPC error is a JSON object on stdout with exit code 1, sometimes
+    // after `# ...` progress lines.
+    const start = res.stdout.indexOf('{')
+    let parsed: unknown = null
+    try {
+      parsed = start < 0 ? null : JSON.parse(res.stdout.slice(start))
+    } catch {
+      parsed = null
+    }
+    if (res.ok && parsed !== null) return parsed as R
+    const rpcError = parsed as { message?: unknown } | null
+    throw new CliError(
+      res.timedOut
+        ? `lightning-cli ${method}: no answer after ${timeoutMs / 1000} s`
+        : `lightning-cli ${method}: ${
+            rpcError?.message
+              ? String(rpcError.message)
+              : res.stdout || res.stderr || 'failed'
+          }`,
+      null,
+      res.timedOut,
+    )
+  }
+
+  const cli = () => {
+    if (!bridge) {
+      throw new CliError(
+        `The Bitcoin service (${backend}) is not reachable over the bridge`,
+        null,
+        false,
+      )
+    }
+    return [
+      'bitcoin-cli',
+      `-rpcconnect=${bridge.host}`,
+      `-rpcport=${bridge.port}`,
+      `-rpccookiefile=${cookieDir}/.cookie`,
+    ]
+  }
+
+  const bitcoinText = async (
+    method: string,
+    params: Param[] = [],
+    timeoutMs = quick,
+  ) => {
+    const res = await run(
+      [
+        ...cli(),
+        `-rpcclienttimeout=${Math.ceil(timeoutMs / 1000)}`,
+        method,
+        ...params.map((p) => (typeof p === 'string' ? p : JSON.stringify(p))),
+      ],
+      timeoutMs + 5_000,
+    )
+    if (res.ok) return res.stdout
+    // "error code: -26\nerror message:\nnon-BIP68-final"
+    const code = res.stderr.match(/^error code: (-?\d+)/m)?.[1]
+    const message = res.stderr.split(/^error message:\n/m)[1]
+    throw new CliError(
+      res.timedOut
+        ? `bitcoin-cli ${method}: no answer after ${timeoutMs / 1000} s`
+        : (message ?? res.stderr ?? 'failed').trim(),
+      code === undefined ? null : Number(code),
+      res.timedOut,
+    )
+  }
+
+  return {
+    ...instance,
+    lightning,
+    lightningUp: () =>
+      lightning('getinfo', {}, 10_000).then(
+        () => true,
+        () => false,
+      ),
+    bitcoin: async <R>(method: string, params?: Param[], timeoutMs?: number) =>
+      JSON.parse(await bitcoinText(method, params, timeoutMs)) as R,
+    bitcoinText,
+    unspent: async (outpoints: Outpoint[]) => {
+      if (!outpoints.length) return new Set<string>()
+      // A shell loop inside the subcontainer: each gettxout is a few
+      // milliseconds there, where an exec per output costs far more. Any
+      // failed call aborts the loop, so "no answer" never reads as "spent".
+      const timeoutMs = Math.max(quick, outpoints.length * 1_000)
+      const res = await run(
+        [
+          'sh',
+          '-c',
+          `while read t n; do o=$(${cli().join(' ')} gettxout "$t" "$n") || exit 1; [ -z "$o" ] || echo "$t:$n"; done`,
+        ],
+        timeoutMs,
+        outpoints.map((o) => `${o.txid} ${o.index}\n`).join(''),
+      )
+      if (!res.ok) {
         throw new CliError(
           res.timedOut
-            ? `lightning-cli ${method}: no answer after ${timeoutMs / 1000} s`
-            : `lightning-cli ${method}: ${
-                rpcError?.message
-                  ? String(rpcError.message)
-                  : res.stdout || res.stderr || 'failed'
-              }`,
+            ? `gettxout for ${outpoints.length} outputs: no answer after ${timeoutMs / 1000} s`
+            : `gettxout: ${res.stderr || 'failed'}`,
           null,
           res.timedOut,
         )
       }
-
-      const bitcoinText = async (
-        method: string,
-        params: Param[] = [],
-        timeoutMs = quick,
-      ) => {
-        if (!bridge) {
-          throw new CliError(
-            `The Bitcoin service (${backend}) is not reachable over the bridge`,
-            null,
-            false,
-          )
-        }
-        const res = await run(
-          [
-            'bitcoin-cli',
-            `-rpcconnect=${bridge.host}`,
-            `-rpcport=${bridge.port}`,
-            `-rpccookiefile=${bitcoinDataDir}/.cookie`,
-            `-rpcclienttimeout=${Math.ceil(timeoutMs / 1000)}`,
-            method,
-            ...params.map((p) =>
-              typeof p === 'string' ? p : JSON.stringify(p),
-            ),
-          ],
-          timeoutMs + 5_000,
-        )
-        if (res.ok) return res.stdout
-        // "error code: -26\nerror message:\nnon-BIP68-final"
-        const code = res.stderr.match(/^error code: (-?\d+)/m)?.[1]
-        const message = res.stderr.split(/^error message:\n/m)[1]
+      return new Set(res.stdout.split('\n').filter(Boolean))
+    },
+    sqlite: async <R>(sql: string) => {
+      const res = await run(
+        [
+          'sqlite3',
+          '-readonly',
+          '-json',
+          '-cmd',
+          '.timeout 10000',
+          databasePath(instance),
+          sql,
+        ],
+        10 * 60_000,
+      )
+      if (!res.ok) {
         throw new CliError(
-          res.timedOut
-            ? `bitcoin-cli ${method}: no answer after ${timeoutMs / 1000} s`
-            : (message ?? res.stderr ?? 'failed').trim(),
-          code === undefined ? null : Number(code),
+          `sqlite3: ${res.stderr || 'failed'}`,
+          null,
           res.timedOut,
         )
       }
-
-      return fn({
-        network,
-        backend,
-        lightning,
-        lightningUp: () =>
-          lightning('getinfo', {}, 10_000).then(
-            () => true,
-            () => false,
-          ),
-        bitcoin: async <R>(
-          method: string,
-          params?: Param[],
-          timeoutMs?: number,
-        ) => JSON.parse(await bitcoinText(method, params, timeoutMs)) as R,
-        bitcoinText,
-        sqlite: async <R>(sql: string) => {
-          const res = await run(
-            [
-              'sqlite3',
-              '-readonly',
-              '-json',
-              '-cmd',
-              '.timeout 10000',
-              databasePath(network),
-              sql,
-            ],
-            10 * 60_000,
-          )
-          if (!res.ok) {
-            throw new CliError(
-              `sqlite3: ${res.stderr || 'failed'}`,
-              null,
-              res.timedOut,
-            )
-          }
-          return (res.stdout ? JSON.parse(res.stdout) : []) as R[]
-        },
-        sqliteBackup: async (dest: string) => {
-          // No timeout: the copy is as long as the database is large, and
-          // killing it would leave a truncated file behind.
-          const res = await sub.exec(
-            [
-              'sqlite3',
-              '-readonly',
-              '-cmd',
-              '.timeout 60000',
-              databasePath(network),
-              `.backup '${dest}'`,
-            ],
-            { timeout: null },
-          )
-          if (res.exitCode !== 0 || text(res.stderr)) {
-            throw new CliError(
-              `sqlite3 .backup: ${text(res.stderr) || 'failed'}`,
-              null,
-              false,
-            )
-          }
-        },
-      })
+      return (res.stdout ? JSON.parse(res.stdout) : []) as R[]
     },
+    sqliteBackup: async (dest: string) => {
+      // No timeout: the copy is as long as the database is large, and
+      // killing it would leave a truncated file behind.
+      const res = await sub.exec(
+        [
+          'sqlite3',
+          '-readonly',
+          '-cmd',
+          '.timeout 60000',
+          databasePath(instance),
+          `.backup '${dest}'`,
+        ],
+        { timeout: null },
+      )
+      if (res.exitCode !== 0 || text(res.stderr)) {
+        throw new CliError(
+          `sqlite3 .backup: ${text(res.stderr) || 'failed'}`,
+          null,
+          false,
+        )
+      }
+    },
+  }
+}
+
+/**
+ * Runs `fn` with lightning-cli, bitcoin-cli and sqlite3 for both instances in
+ * one temporary subcontainer of the lightning image, with both Bitcoin
+ * services' cookies mounted. It needs neither lightningd nor a running
+ * service: only the calls that reach a daemon fail without it.
+ */
+export async function withChains<R>(
+  effects: T.Effects,
+  name: string,
+  fn: (chains: Chains) => Promise<R>,
+): Promise<R> {
+  const primary = await primaryInstance(effects)
+  const secondary = await blake2bInstance(effects)
+  const store = await storeJson.read().once()
+  return sdk.SubContainer.withTemp(
+    effects,
+    { imageId: 'lightning' },
+    mountsWithBitcoin(await bitcoinBackend(), !!store?.recovery),
+    name,
+    async (sub) =>
+      fn({
+        sha256d: makeTools(sub, primary),
+        blake2b: secondary && makeTools(sub, secondary),
+      }),
   )
 }
+
+/** `withChains` for the actions that only use the primary instance. */
+export const withTools = <R>(
+  effects: T.Effects,
+  name: string,
+  fn: (tools: Tools) => Promise<R>,
+) => withChains(effects, name, (chains) => fn(chains.sha256d))

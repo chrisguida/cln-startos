@@ -17,8 +17,12 @@ import { payInvoice } from './payInvoice'
 import { receivePayment } from './receivePayment'
 import { recoveryCloseAll } from './recovery/closeAll'
 import { recoveryDiagnostics } from './recovery/diagnostics'
+import { recoveryFinish } from './recovery/finish'
 import { recoveryOffline } from './recovery/offline'
+import { recoveryRepair } from './recovery/repair'
+import { recoveryReplay } from './recovery/replay'
 import { recoverySnapshot } from './recovery/snapshot'
+import { recoverySplit } from './recovery/split'
 import { recoveryStatus } from './recovery/status'
 import { recoveryWithdraw } from './recovery/withdraw'
 import {
@@ -53,7 +57,11 @@ export const actions = sdk.Actions.of()
   .addAction(recoverySnapshot)
   .addAction(recoveryOffline)
   .addAction(recoveryCloseAll)
+  .addAction(recoveryReplay)
+  .addAction(recoveryRepair)
+  .addAction(recoverySplit)
   .addAction(recoveryWithdraw)
+  .addAction(recoveryFinish)
   .addAction(recoveryDiagnostics)
 
 // @TODO generate-lnlink

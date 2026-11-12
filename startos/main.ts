@@ -13,15 +13,21 @@ import { clnConfig } from './fileModels/config'
 import { storeJson } from './fileModels/store.json'
 import { vpnConfFile } from './fileModels/vpn.conf'
 import { i18n } from './i18n'
+import { createBlake2bInstance } from './recovery/instance'
+import { blake2bInstance, primaryInstance } from './recovery/tools'
 import { sdk } from './sdk'
 import {
   bitcoinBackend,
   bitcoindRpcBridge,
+  blake2bLightningDir,
+  blake2bPrefix,
+  blake2bRpcBridge,
   clnrestPort,
   grpcPort,
   mainMounts,
   mountsWithBitcoin,
   rootDir,
+  sha256dPrefix,
   uiPort,
   wsPort,
 } from './utils'
@@ -58,6 +64,23 @@ export const main = sdk.setupMain(async ({ effects }) => {
     watchtowerClientPlugin,
   )
 
+  // During a recovery the node's own data is run by the SHA256d build, and a
+  // second lightningd, the fork, runs a copy of it against the BLAKE2b service
+  // (see recovery/instance.ts). Afterwards the fork runs the node's data.
+  const prefix = store.recovery ? sha256dPrefix : blake2bPrefix
+  const blake2bBridge = store.recovery ? await blake2bRpcBridge(effects) : null
+
+  // One-shot from Recovery: Finish: the gossip store gathered on the SHA256d
+  // chain is useless on BLAKE2b. The file is gone once this returns, so the
+  // flag is cleared here; the store watch below ignores this key.
+  if (store.wipeGossip) {
+    await rm(
+      `/media/startos/volumes/main/${conf?.raw?.network ?? 'bitcoin'}/gossip_store`,
+      { force: true },
+    )
+    await storeJson.merge(effects, { wipeGossip: undefined })
+  }
+
   const lightningdArgs: string[] = ['--database-upgrade=true']
 
   const vpn =
@@ -83,6 +106,20 @@ export const main = sdk.setupMain(async ({ effects }) => {
     lightningdArgs.push('--offline')
   }
 
+  // Regtest after a recovery: the fork needs the test activation height, which
+  // the SHA256d build has no option for, so it lives in the store and goes on
+  // the command line here (dev- options need --developer).
+  if (
+    !store.recovery &&
+    conf?.raw?.network === 'regtest' &&
+    store.blake2bActivationHeight
+  ) {
+    lightningdArgs.push(
+      '--developer',
+      `--dev-blake2b-activation-height=${store.blake2bActivationHeight}`,
+    )
+  }
+
   // `rescan` and `restore` are one-shot request flags (rescan set by the
   // Rescan Blockchain action, restore by the post-restore hook in backups.ts).
   // They are deliberately NOT cleared here: a session where lightningd never
@@ -105,14 +142,14 @@ export const main = sdk.setupMain(async ({ effects }) => {
   const lightningSub = sdk.SubContainer.of(
     effects,
     { imageId: 'lightning' },
-    mountsWithBitcoin(await bitcoinBackend(effects)),
+    mountsWithBitcoin(await bitcoinBackend(effects), store.recovery),
     'lightning-sub',
   )
 
   const lightningGetinfo = async () => {
     for (let attempt = 1; ; attempt++) {
       const res = await lightningSub.exec([
-        'lightning-cli',
+        `${prefix}/bin/lightning-cli`,
         `--lightning-dir=${rootDir}`,
         'getinfo',
       ])
@@ -154,7 +191,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
       subcontainer: lightningSub,
       exec: {
         command: [
-          'lightningd',
+          `${prefix}/bin/lightningd`,
           `--lightning-dir=${rootDir}`,
           `--conf=${rootDir}/config`,
           ...lightningdArgs,
@@ -370,16 +407,185 @@ export const main = sdk.setupMain(async ({ effects }) => {
         JSON.stringify(prev?.clearnetVpn) ===
           JSON.stringify(next?.clearnetVpn) &&
         prev?.offline === next?.offline &&
+        prev?.recovery === next?.recovery &&
+        prev?.blake2b === next?.blake2b &&
         (next?.rescan === undefined || prev?.rescan === next?.rescan) &&
+        (next?.blake2bRescan === undefined ||
+          prev?.blake2bRescan === next?.blake2bRescan) &&
         (next?.restore === undefined || prev?.restore === next?.restore),
     )
     .const(effects)
+
+  // The BLAKE2b instance of a recovery, once Close All has asked for it: the
+  // copy is made here rather than in the action, which StartOS stops after
+  // 120 s, and the daemon waits for it. Both run whenever the flag is set, so
+  // a copy that an earlier start did not finish is completed first.
+  const blake2bOn = store.recovery && store.blake2b
+  const blake2bCli = [
+    `${blake2bPrefix}/bin/lightning-cli`,
+    `--lightning-dir=${blake2bLightningDir}`,
+  ]
+  const blake2bGetinfo = () =>
+    lightningSub.exec([...blake2bCli, 'getinfo'], { timeout: 20_000 })
 
   // emergency-recover and watchtower-server are added conditionally via thunks so
   // both can coexist in a single chain. (Previously each `if` rebuilt from
   // `baseDaemons`, so enabling the watchtower server silently dropped the
   // emergency-recover oneshot after a restore.)
   return baseDaemons
+    .addOneshot('blake2b-copy', () =>
+      blake2bOn
+        ? {
+            subcontainer: lightningSub,
+            exec: {
+              fn: async (subcontainer) => {
+                const primary = await primaryInstance(effects)
+                const secondary = await blake2bInstance(effects)
+                if (!secondary) return null
+                const made = await createBlake2bInstance(
+                  subcontainer,
+                  primary,
+                  secondary,
+                  {
+                    network: secondary.network,
+                    bridge: blake2bBridge,
+                    cookieDir: secondary.cookieDir,
+                    activationHeight: store.blake2bActivationHeight,
+                  },
+                )
+                console.log(
+                  made.copied
+                    ? `BLAKE2b instance: database copied to ${made.database}`
+                    : `BLAKE2b instance: database already at ${made.database}`,
+                )
+                return null
+              },
+            },
+            requires: [],
+          }
+        : null,
+    )
+    .addDaemon('lightningd-blake2b', () =>
+      blake2bOn
+        ? {
+            subcontainer: lightningSub,
+            exec: {
+              command: [
+                `${blake2bPrefix}/bin/lightningd`,
+                `--lightning-dir=${blake2bLightningDir}`,
+                `--conf=${blake2bLightningDir}/config`,
+                '--database-upgrade=true',
+                ...(store.blake2bRescan
+                  ? [`--rescan=${store.blake2bRescan}`]
+                  : []),
+              ],
+            },
+            ready: {
+              display: i18n('BLAKE2b Instance'),
+              fn: async () => {
+                const res = await blake2bGetinfo()
+                return res.exitCode === 0
+                  ? {
+                      result: 'success',
+                      message: i18n('The BLAKE2b instance answers RPC'),
+                    }
+                  : {
+                      result: 'loading',
+                      message: i18n('The BLAKE2b instance is starting'),
+                    }
+              },
+            },
+            requires: ['blake2b-copy'],
+          }
+        : null,
+    )
+    .addHealthCheck('blake2b-synced', () =>
+      blake2bOn
+        ? {
+            ready: {
+              display: i18n('BLAKE2b Chain'),
+              fn: async () => {
+                const res = await blake2bGetinfo()
+                if (res.exitCode !== 0) {
+                  return {
+                    result: 'loading',
+                    message: i18n('The BLAKE2b instance is not answering yet'),
+                  }
+                }
+                let height = 0
+                let warning = false
+                let backendBehind = false
+                try {
+                  const info = JSON.parse(res.stdout as string)
+                  height = info.blockheight
+                  warning = !!info.warning_lightningd_sync
+                  backendBehind = !!info.warning_bitcoind_sync
+                } catch {
+                  return {
+                    result: 'failure',
+                    message: `'lightning-cli getinfo' returned unparseable output: ${String(res.stdout)}`,
+                  }
+                }
+                if (backendBehind) {
+                  return {
+                    result: 'loading',
+                    message: i18n(
+                      'The BLAKE2b service (bitcoind) is not up to date with its network; the BLAKE2b instance is at height ${height} and waits for it.',
+                      { height: String(height) },
+                    ),
+                  }
+                }
+                if (!warning) {
+                  return {
+                    result: 'success',
+                    message: i18n(
+                      'The BLAKE2b instance is at the tip of the BLAKE2b chain, height ${height}',
+                      { height: String(height) },
+                    ),
+                  }
+                }
+                const tip = blake2bBridge
+                  ? await lightningSub.exec([
+                      'bitcoin-cli',
+                      `--rpcconnect=${blake2bBridge.host}`,
+                      `--rpcport=${blake2bBridge.port}`,
+                      `--rpccookiefile=${(await blake2bInstance(effects))?.cookieDir}/.cookie`,
+                      'getblockcount',
+                    ])
+                  : null
+                return {
+                  result: 'loading',
+                  message: i18n(
+                    'The BLAKE2b instance is reading the BLAKE2b chain: block ${height} of ${tip}. This takes a while after the first start.',
+                    {
+                      height: String(height),
+                      tip:
+                        tip?.exitCode === 0 ? String(tip.stdout).trim() : '?',
+                    },
+                  ),
+                }
+              },
+            },
+            requires: ['lightningd-blake2b'],
+          }
+        : null,
+    )
+    .addOneshot('blake2b-consume-rescan', () =>
+      blake2bOn && store.blake2bRescan
+        ? {
+            subcontainer: lightningSub,
+            exec: {
+              fn: async () => {
+                // The instance is up: its rescan can no longer be lost to a
+                // failed start. The store watch ignores this clear.
+                await storeJson.merge(effects, { blake2bRescan: undefined })
+                return null
+              },
+            },
+            requires: ['lightningd-blake2b'],
+          }
+        : null,
+    )
     .addOneshot('emergency-recover', () =>
       store.restore
         ? {

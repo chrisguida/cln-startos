@@ -1,4 +1,5 @@
 import { T } from '@start9labs/start-sdk'
+import { storeJson } from '../../fileModels/store.json'
 import { i18n } from '../../i18n'
 import {
   assertAboveFloor,
@@ -6,6 +7,7 @@ import {
   mempoolFee,
   perkb,
 } from '../../recovery/fees'
+import { recoveryRescan, SplitHeights } from '../../recovery/heights'
 import {
   htlcCount,
   isOpen,
@@ -25,6 +27,44 @@ import { CliError, Tools, withTools } from '../../recovery/tools'
 import { sdk } from '../../sdk'
 
 const { InputSpec, Value } = sdk
+
+/** A channel whose close transaction is in the database, whether or not it is in a block. */
+const closeDecided = (c: PeerChannel) =>
+  !isOpen(c) || c.state === 'CLOSINGD_COMPLETE'
+
+/**
+ * Starts the BLAKE2b instance once every close is decided: main copies the
+ * database (the copy then holds the negotiated shutdown scripts, so the
+ * fork recognizes every cooperative close) and runs the fork on it, offline,
+ * rescanning from below the split. Returns the line to tell the operator.
+ */
+async function startBlake2b(
+  effects: T.Effects,
+  tools: Tools,
+  channels: PeerChannel[],
+  heights: SplitHeights | null,
+): Promise<string | null> {
+  const store = await storeJson.read().once()
+  if (!store?.recovery) return null
+  if (store.blake2b) {
+    return i18n('The BLAKE2b instance is already running.')
+  }
+  if (!channels.every(closeDecided)) {
+    return i18n(
+      'The BLAKE2b instance is not started yet: a close is still being negotiated. Run this action again once Recovery: Status shows every channel closing.',
+    )
+  }
+  const rescan = recoveryRescan(heights)
+  await storeJson.merge(effects, {
+    blake2b: true,
+    ...(rescan === null ? {} : { blake2bRescan: rescan }),
+  })
+  await audit('blake2b-start', { rescan })
+  return i18n(
+    'Every close is broadcast. Core Lightning restarts now with a second instance: a copy of the database run by the BLAKE2b build against the BLAKE2b chain, offline, reading that chain from height ${height}. Its health checks are "BLAKE2b Instance" and "BLAKE2b Chain"; run Recovery: Status once the latter is green.',
+    { height: String(heights?.rescanFrom ?? '?') },
+  )
+}
 
 // `txs`/`txids` are arrays: a close can be more than one transaction.
 type CloseResult = { type: string; txids?: string[]; txs?: string[] }
@@ -92,7 +132,7 @@ export const recoveryCloseAll = sdk.Action.withInput(
   async ({ effects }) => ({
     name: i18n('Recovery: Close All Channels'),
     description: i18n(
-      'Closes every open channel. Each close is tried cooperatively first; a peer that has not answered within the unilateral timeout is force-closed. Afterwards the lists in recovery/final are refreshed.',
+      'Closes every open channel on the SHA256d chain. Each close is tried cooperatively first; a peer that has not answered within the unilateral timeout is force-closed. Afterwards the lists in recovery/final are refreshed, and once every close is broadcast the BLAKE2b instance is started. Run it again with nothing left to close to save close transactions an earlier run missed, or to start the BLAKE2b instance.',
     ),
     warning: i18n(
       "Closing channels cannot be undone. A unilateral close locks your side of the channel for the peer's CSV delay, and its fee was fixed when the commitment was signed.",
@@ -170,6 +210,12 @@ export const recoveryCloseAll = sdk.Action.withInput(
         await audit('close-all-catch-up', {
           saved: saved.map((s) => s.txid),
         })
+        const blake2b = await startBlake2b(
+          effects,
+          tools,
+          lists.listpeerchannels.channels,
+          state.heights,
+        )
         return {
           version: '1',
           title: i18n('Nothing to close'),
@@ -182,6 +228,7 @@ export const recoveryCloseAll = sdk.Action.withInput(
                   ),
                 ]
               : []),
+            ...(blake2b ? [blake2b] : []),
           ].join('\n\n'),
           result: closing.length
             ? {
@@ -279,6 +326,14 @@ export const recoveryCloseAll = sdk.Action.withInput(
       const unilateral = results.filter(
         (r) => r.res?.type === 'unilateral',
       ).length
+      const blake2b = lateFor()
+        ? null
+        : await startBlake2b(
+            effects,
+            tools,
+            lists.listpeerchannels.channels,
+            state.heights,
+          )
       return {
         version: '1',
         title: failed ? i18n('Some closes failed') : i18n('Channels closing'),
@@ -293,9 +348,10 @@ export const recoveryCloseAll = sdk.Action.withInput(
               range: literal(feerange.join(' .. ')),
             },
           ),
-          i18n(
-            'Wait until Recovery: Status shows every channel resolved (after a unilateral close that includes the CSV delay and the sweep), then take a Recovery: Snapshot so that recovery/final holds every close and sweep transaction.',
-          ),
+          blake2b ??
+            i18n(
+              'Run this action again in a few minutes: with nothing left to close it saves any close transaction this run missed and starts the BLAKE2b instance.',
+            ),
         ].join('\n\n'),
         result: { type: 'group', value: rows },
       }

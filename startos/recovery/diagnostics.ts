@@ -6,6 +6,7 @@ import { current } from '../versions/current'
 import { Lists, sat, walletTotals } from './node'
 import { State } from './report'
 import { finalPath, readLists, recoveryPath, snapshotDirs } from './snapshot'
+import { Recovery } from './status'
 import { Tools } from './tools'
 
 /**
@@ -54,7 +55,8 @@ const recoveryKeys = [
   'offline',
   'rescan',
   'recovery',
-  'developer',
+  'blake2b',
+  'blake2bRescan',
   'wipeGossip',
 ]
 
@@ -183,17 +185,48 @@ function nodeDetail(lists: Lists, detail: boolean) {
   }
 }
 
-/**
- * The whole diagnostics file. `status` is the Status action's result for the
- * same moment; `extra` carries build-specific sections. A section that fails
- * is recorded under `errors` instead of failing the file.
- */
-export async function diagnosticsText(
+/** One instance's part of the file, as plain data. */
+async function instanceDetail(
   tools: Tools,
   state: State,
+  detail: boolean,
+  savedFallback: boolean,
+) {
+  const saved =
+    state.lists === null && savedFallback ? await readLists(finalPath) : null
+  const lists = state.lists ?? saved
+  return {
+    prefix: tools.prefix,
+    lightning_dir: tools.lightningDir,
+    core_lightning: state.node
+      ? {
+          version: state.node.version,
+          blockheight: state.node.blockheight,
+          id: prefix(state.node.id),
+        }
+      : 'not answering',
+    network: tools.network,
+    backend: tools.backend,
+    // Block hashes only: they identify the chain, not the user.
+    chain: state.chain,
+    node: lists
+      ? {
+          source: state.lists ? 'lightningd' : `saved in ${finalPath}`,
+          ...nodeDetail(lists, detail),
+        }
+      : 'lightningd not answering and no saved lists',
+  }
+}
+
+/**
+ * The whole diagnostics file. `status` is the Status action's result for the
+ * same moment. A section that fails is recorded under `errors` instead of
+ * failing the file.
+ */
+export async function diagnosticsText(
+  recovery: Recovery,
   status: T.ActionResult & { version: '1' },
   detail: boolean,
-  extra: Record<string, () => Promise<unknown>> = {},
 ): Promise<string> {
   const errors: string[] = []
   const section = async <R>(name: string, fn: () => Promise<R>) => {
@@ -206,11 +239,9 @@ export async function diagnosticsText(
   }
 
   const store = await section('store', () => storeJson.read().once())
-  const saved =
-    state.lists === null
-      ? await section('saved lists', () => readLists(finalPath))
-      : null
-  const lists = state.lists ?? saved
+  const { sha256d, blake2b } = recovery
+  const outpoint = (o: { txid: string; output: number }) =>
+    detail ? `${o.txid}:${o.output}` : '<outpoint>'
 
   const data: Record<string, unknown> = {
     generated: new Date().toISOString(),
@@ -218,16 +249,7 @@ export async function diagnosticsText(
       id: manifest.id,
       version: current.options.version,
     },
-    core_lightning: state.node
-      ? {
-          version: state.node.version,
-          blockheight: state.node.blockheight,
-          id: prefix(state.node.id),
-        }
-      : 'not answering',
-    network: tools.network,
-    backend: tools.backend,
-    heights: state.heights,
+    heights: sha256d.state.heights,
     recovery_settings:
       store &&
       Object.fromEntries(
@@ -236,25 +258,44 @@ export async function diagnosticsText(
           (store as Record<string, unknown>)[k] ?? null,
         ]),
       ),
-    // Block hashes only: they identify the chain, not the user.
-    chain: state.chain,
-    node: lists
-      ? {
-          source: state.lists ? 'lightningd' : `saved in ${finalPath}`,
-          ...nodeDetail(lists, detail),
-        }
-      : 'lightningd not answering and no saved lists',
+    primary: await section('primary instance', () =>
+      instanceDetail(sha256d.tools, sha256d.state, detail, true),
+    ),
+    blake2b: blake2b
+      ? await section('blake2b instance', async () => ({
+          ...(await instanceDetail(
+            blake2b.tools,
+            blake2b.state,
+            detail,
+            false,
+          )),
+          saved_lists: blake2b.saved.sources,
+          unreplayed_fundings: blake2b.unreplayed.map((c) =>
+            detail ? `${c.funding_txid}:${c.funding_outnum}` : '<outpoint>',
+          ),
+          pending_replays: blake2b.pendingReplays.map((p) =>
+            detail ? p : '<txid>',
+          ),
+          drift: blake2b.drift && {
+            checked: blake2b.drift.checked,
+            phantom: blake2b.drift.phantom.map(outpoint),
+            restorable: blake2b.drift.restorable.map(outpoint),
+          },
+        }))
+      : 'not started',
+    coins_on_both_chains: recovery.coins && {
+      shared: recovery.coins.shared.map(outpoint),
+      safe: recovery.coins.safe.map(outpoint),
+      unknown_to_blake2b: recovery.coins.unknownToBlake2b.map(outpoint),
+    },
     snapshots: await section('snapshots', snapshotDirs),
-  }
-  for (const [name, fn] of Object.entries(extra)) {
-    data[name] = await section(name, fn)
   }
 
   const actionsLog = await section('actions.log', () =>
     tail(`${volume}/${recoveryPath}/actions.log`, actionsLogLines),
   )
   const crash = await section('crash logs', async () => {
-    const dir = `${volume}/${tools.network}`
+    const dir = `${volume}/${sha256d.tools.network}`
     const names = (await readdir(dir))
       .filter((n) => n.startsWith('crash.log'))
       .sort()

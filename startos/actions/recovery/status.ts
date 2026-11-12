@@ -1,17 +1,7 @@
 import { T } from '@start9labs/start-sdk'
-import { storeJson } from '../../fileModels/store.json'
 import { i18n } from '../../i18n'
-import {
-  chainRows,
-  chainVerdict,
-  group,
-  nodeRows,
-  pathVerdict,
-  readState,
-  row,
-  State,
-} from '../../recovery/report'
-import { Tools, withTools } from '../../recovery/tools'
+import { readRecovery, statusResult } from '../../recovery/status'
+import { withChains } from '../../recovery/tools'
 import { sdk } from '../../sdk'
 
 export const recoveryStatus = sdk.Action.withoutInput(
@@ -20,7 +10,7 @@ export const recoveryStatus = sdk.Action.withoutInput(
   async ({ effects }) => ({
     name: i18n('Recovery: Status'),
     description: i18n(
-      'Shows which chain the Bitcoin backend is on, how far this node has followed it, the state of every channel, the on-chain wallet, and which recovery path applies. Changes nothing.',
+      'Shows both chains: which chain each Bitcoin service is on, how far each Core Lightning instance has followed it, every channel and coin on each, which coins still exist on both chains, and the one step to take next. Changes nothing.',
     ),
     warning: null,
     allowedStatuses: 'any',
@@ -29,32 +19,7 @@ export const recoveryStatus = sdk.Action.withoutInput(
   }),
 
   async ({ effects }): Promise<T.ActionResult & { version: '1' }> =>
-    withTools(effects, 'recovery-status', async (tools) =>
-      statusResult(tools, await readState(tools)),
+    withChains(effects, 'recovery-status', async (chains) =>
+      statusResult(await readRecovery(chains)),
     ),
 )
-
-/** The Status result, also written into Recovery: Export Diagnostics. */
-export async function statusResult(
-  tools: Tools,
-  state: State,
-): Promise<T.ActionResult & { version: '1' }> {
-  const offline = !!(await storeJson.read((s) => s.offline).once())
-  return {
-    version: '1',
-    title: i18n('Recovery: Status'),
-    message: [...chainVerdict(tools, state), ...pathVerdict(state)].join(
-      '\n\n',
-    ),
-    result: {
-      type: 'group',
-      value: [
-        group(i18n('Chain'), [
-          ...chainRows(tools, state),
-          row(i18n('Offline mode'), offline ? 'on' : 'off'),
-        ]),
-        group(i18n('Channels and wallet'), nodeRows(state)),
-      ],
-    },
-  }
-}

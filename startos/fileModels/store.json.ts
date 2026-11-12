@@ -13,6 +13,22 @@ const shape = z.looseObject({
   // Persisted --offline: no peer connections until it is turned off again.
   offline: z.boolean().catch(false),
   rescan: z.number().optional().catch(undefined),
+  // A recovery is in progress: the primary instance runs the SHA256d build on
+  // the node's database, both Bitcoin services are required, and the Recovery
+  // actions move the node to the BLAKE2b chain. Set by the migration that
+  // installs this build, cleared by Recovery: Finish.
+  recovery: z.boolean().catch(false),
+  // The BLAKE2b instance exists: a copy of the database taken once every
+  // channel close was broadcast, run offline by the fork under
+  // recovery/blake2b/. Set by Recovery: Close All Channels; main creates the
+  // copy. Cleared by Finish, which moves that data into place.
+  blake2b: z.boolean().catch(false),
+  // One-shot --rescan for the BLAKE2b instance's first start, from below the
+  // split. Cleared only once that instance answers RPC, like `rescan`.
+  blake2bRescan: z.number().optional().catch(undefined),
+  // One-shot from Recovery: Finish: main deletes the gossip store gathered on
+  // the SHA256d chain at its next start.
+  wipeGossip: z.boolean().optional().catch(undefined),
   watchtowerServer: z.boolean().catch(false),
   watchtowerClients: z.array(z.string()).catch([]),
   watchtowerLabels: z

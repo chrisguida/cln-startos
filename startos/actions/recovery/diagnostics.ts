@@ -1,11 +1,10 @@
 import { T } from '@start9labs/start-sdk'
 import { i18n } from '../../i18n'
 import { diagnosticsText } from '../../recovery/diagnostics'
-import { readState } from '../../recovery/report'
 import { audit } from '../../recovery/snapshot'
-import { withTools } from '../../recovery/tools'
+import { readRecovery, statusResult } from '../../recovery/status'
+import { withChains } from '../../recovery/tools'
 import { sdk } from '../../sdk'
-import { statusResult } from './status'
 
 const { InputSpec, Value } = sdk
 
@@ -38,10 +37,10 @@ export const recoveryDiagnostics = sdk.Action.withInput(
   async ({ effects }) => ({}),
 
   async ({ effects, input }): Promise<T.ActionResult & { version: '1' }> =>
-    withTools(effects, 'recovery-diagnostics', async (tools) => {
-      const state = await readState(tools)
-      const status = await statusResult(tools, state)
-      const text = await diagnosticsText(tools, state, status, input.detail)
+    withChains(effects, 'recovery-diagnostics', async (chains) => {
+      const recovery = await readRecovery(chains)
+      const status = await statusResult(recovery)
+      const text = await diagnosticsText(recovery, status, input.detail)
       await audit('recovery-diagnostics', { detail: input.detail })
       const stamp = new Date().toISOString().replace(/[:.]/g, '-')
       return {

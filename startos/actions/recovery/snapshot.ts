@@ -2,7 +2,7 @@ import { T } from '@start9labs/start-sdk'
 import { i18n } from '../../i18n'
 import { chainRecord, literal, readState, row } from '../../recovery/report'
 import { audit, refreshFinal, takeSnapshot } from '../../recovery/snapshot'
-import { withTools } from '../../recovery/tools'
+import { withChains } from '../../recovery/tools'
 import { sdk } from '../../sdk'
 
 export const recoverySnapshot = sdk.Action.withoutInput(
@@ -22,11 +22,12 @@ export const recoverySnapshot = sdk.Action.withoutInput(
   }),
 
   async ({ effects }): Promise<T.ActionResult & { version: '1' }> =>
-    withTools(effects, 'recovery-snapshot', async (tools) => {
+    withChains(effects, 'recovery-snapshot', async (chains) => {
+      const tools = chains.sha256d
       const state = await readState(tools)
       const record = chainRecord(tools, state)
       const lists = state.lists ? await refreshFinal(tools, record) : null
-      const snapshot = await takeSnapshot(tools, record, lists)
+      const snapshot = await takeSnapshot(tools, record, lists, chains.blake2b)
       await audit('snapshot', snapshot)
       return {
         version: '1',

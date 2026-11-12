@@ -20,7 +20,8 @@ export const recoveryPath = 'recovery'
 /** The lists as of the last close, withdraw or snapshot: what the fork stage replays from. */
 export const finalPath = `${recoveryPath}/final`
 
-const host = (path: string) => `${volume}/${path}`
+/** A path inside the main volume, as the package's own process sees it. */
+export const host = (path: string) => `${volume}/${path}`
 
 async function privateDir(path: string) {
   await mkdir(host(path), { recursive: true, mode: 0o700 })
@@ -98,6 +99,8 @@ export async function takeSnapshot(
   tools: Tools,
   record: Omit<ChainRecord, 'takenAt'>,
   lists: Lists | null,
+  /** The BLAKE2b instance, whose database is copied too when there is one. */
+  blake2b: Tools | null = null,
 ) {
   const takenAt = new Date().toISOString()
   const dir = `${recoveryPath}/${takenAt.replace(/[:.]/g, '-')}`
@@ -127,6 +130,33 @@ export async function takeSnapshot(
   await tools.sqliteBackup(`${rootDir}/${dir}/lightningd.sqlite3`)
   await chmod(host(`${dir}/lightningd.sqlite3`), 0o600)
   files.push('lightningd.sqlite3')
+  if (blake2b) {
+    const ok = await blake2b
+      .sqliteBackup(`${rootDir}/${dir}/blake2b-lightningd.sqlite3`)
+      .then(
+        () => true,
+        () => false,
+      )
+    if (ok) {
+      await chmod(host(`${dir}/blake2b-lightningd.sqlite3`), 0o600)
+      files.push('blake2b-lightningd.sqlite3')
+    } else {
+      missing.push('blake2b-lightningd.sqlite3')
+    }
+  }
+  await writePrivate(
+    `${dir}/DO-NOT-RESTORE.txt`,
+    [
+      'DO NOT RESTORE THESE DATABASES.',
+      '',
+      `A Recovery: Snapshot taken ${takenAt}. A Lightning channel database is`,
+      'only safe at its latest state: starting a node on an older copy can',
+      'broadcast a revoked commitment and lose the channel balance to the peer.',
+      'hsm_secret and emergency.recover are the files worth keeping.',
+      '',
+    ].join('\n'),
+  )
+  files.push('DO-NOT-RESTORE.txt')
 
   if (lists) {
     await writeLists(dir, lists)
