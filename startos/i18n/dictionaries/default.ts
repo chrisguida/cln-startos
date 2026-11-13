@@ -677,6 +677,12 @@ const dict = {
 
   // Recovery: Include Sweeps caveat
   'Also replay the transactions that spend the outputs of the closes (sweeps, HTLC transactions). Normally the BLAKE2b instance makes its own; use this only if it cannot, and never after a withdrawal made outside this package that spends only close outputs: that cannot be told from a sweep, and replaying it would pay its SHA256d destination on BLAKE2b.': 626,
+
+  // Recovery: stale commitments (P23)
+  'SUPERSEDED: ${count} channel transaction(s) the wallet saw but no block took (${list}) spend inputs that the BLAKE2b chain has spent by other transactions: a stale commitment of a channel that closed another way. Nothing to wait for.': 627,
+
+  // Recovery: Split destination is optional
+  'Destination Address (optional)': 628,
 } as const
 
 /**

@@ -58,7 +58,7 @@ export const recoverySplit = sdk.Action.withInput(
 
   InputSpec.of({
     destination: Value.text({
-      name: i18n('Destination Address'),
+      name: i18n('Destination Address (optional)'),
       description: i18n(
         'Where to send the coins on the BLAKE2b chain. Leave empty to send them to fresh addresses of this node.',
       ),

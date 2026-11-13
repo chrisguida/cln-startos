@@ -61,6 +61,12 @@ export type Recovery = {
     unreplayed: (PeerChannel | ClosedChannel)[]
     /** Selected channel transactions not in a BLAKE2b block yet, as "txid (status)". */
     pendingReplays: string[]
+    /**
+     * Channel transactions the wallet saw but no block took (a stale
+     * commitment of a channel that closed by another transaction), whose
+     * inputs the BLAKE2b chain has spent otherwise: nothing to wait for.
+     */
+    superseded: string[]
     drift: Drift | null
   } | null
   /** The primary wallet's spendable coins, by whether BLAKE2b still has them unspent. */
@@ -94,19 +100,42 @@ export async function readRecovery(chains: Chains): Promise<Recovery> {
     const closed = closedChannels(saved, state.lists)
     const unreplayed = await unspentFundings(tools, closed).catch(() => [])
     const pendingReplays: string[] = []
+    const superseded: string[] = []
     if (state.heights) {
       // Closes only: the sweeps are the BLAKE2b instance's own business, and a
       // withdrawal of a close output would otherwise count as one forever.
       for (const tx of selectChannelTxs(saved, state.heights).replay) {
         const status = await backendStatus(tools, tx).catch(() => 'unknown')
-        if (status !== 'confirmed')
-          pendingReplays.push(`${tx.hash} (${status})`)
+        if (status === 'confirmed') continue
+        if (status === 'unknown') {
+          // A commitment the wallet saw but no block took (the channel closed
+          // by another transaction, on both chains) spends inputs that the
+          // BLAKE2b chain has spent otherwise: it can never land there, so it
+          // is not pending (P23). If the backend does not answer, it stays
+          // pending: "no answer" never reads as "settled".
+          const live = await tools
+            .unspent(tx.inputs.map((i) => ({ txid: i.txid, index: i.index })))
+            .catch(() => null)
+          if (live && live.size === 0) {
+            superseded.push(tx.hash)
+            continue
+          }
+        }
+        pendingReplays.push(`${tx.hash} (${status})`)
       }
     }
     const drift = state.lists
       ? await walletDrift(tools).catch(() => null)
       : null
-    blake2b = { tools, state, saved, unreplayed, pendingReplays, drift }
+    blake2b = {
+      tools,
+      state,
+      saved,
+      unreplayed,
+      pendingReplays,
+      superseded,
+      drift,
+    }
 
     if (sha256d.state.lists) {
       const outputs = sha256d.state.lists.listfunds.outputs.filter(
@@ -370,6 +399,17 @@ function blake2bVerdict(r: Recovery): string[] {
         {
           count: String(b.pendingReplays.length),
           list: literal(b.pendingReplays.join(', ')),
+        },
+      ),
+    )
+  }
+  if (b.superseded.length) {
+    lines.push(
+      i18n(
+        'SUPERSEDED: ${count} channel transaction(s) the wallet saw but no block took (${list}) spend inputs that the BLAKE2b chain has spent by other transactions: a stale commitment of a channel that closed another way. Nothing to wait for.',
+        {
+          count: String(b.superseded.length),
+          list: literal(b.superseded.map(shortId).join(', ')),
         },
       ),
     )

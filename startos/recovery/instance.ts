@@ -63,6 +63,10 @@ export function blake2bConfigText(opts: {
     // No peer connections and no listening: the instance only watches the
     // chain, resolves closes and spends its wallet.
     'offline',
+    // Both instances share one container: without this, connectd would still
+    // bind the network's default port at start, even offline, and on mainnet
+    // that is the primary's 9735.
+    'autolisten=false',
     // dev-rescan-outputs (Recovery: Repair Wallet).
     'developer',
     ...(opts.network === 'regtest' && opts.activationHeight

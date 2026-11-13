@@ -639,6 +639,12 @@ export default {
 
     // Recovery: Include Sweeps caveat
     626: 'Reproducir también las transacciones que gastan las salidas de los cierres (barridos, transacciones HTLC). Normalmente la instancia BLAKE2b hace las suyas; úselo solo si no puede, y nunca tras una retirada hecha fuera de este paquete que gaste solo salidas de cierre: no se distingue de un barrido, y reproducirla pagaría su destino SHA256d en BLAKE2b.',
+
+    // Recovery: stale commitments (P23)
+    627: 'SUSTITUIDAS: ${count} transacción(es) de canal que la cartera vio pero ningún bloque incluyó (${list}) gastan entradas que la cadena BLAKE2b ya gastó con otras transacciones: un compromiso obsoleto de un canal que se cerró de otra manera. Nada que esperar.',
+
+    // Recovery: Split destination is optional
+    628: 'Dirección de destino (opcional)',
   },
   de_DE: {
     0: 'Core Lightning wird gestartet!',
@@ -1278,6 +1284,12 @@ export default {
 
     // Recovery: Include Sweeps caveat
     626: 'Auch die Transaktionen wiederholen, die die Ausgaben der Schließungen ausgeben (Einsammeln, HTLC-Transaktionen). Normalerweise macht die BLAKE2b-Instanz ihre eigenen; nur verwenden, wenn sie das nicht kann, und nie nach einer außerhalb dieses Pakets gemachten Auszahlung, die nur Schließungsausgaben ausgibt: sie ist von einer Einsammeltransaktion nicht zu unterscheiden, und ihre Wiederholung würde ihr SHA256d-Ziel auf BLAKE2b bezahlen.',
+
+    // Recovery: stale commitments (P23)
+    627: 'ÜBERHOLT: ${count} Kanaltransaktion(en), die die Wallet gesehen hat, die aber in keinen Block kamen (${list}), geben Eingaben aus, die die BLAKE2b-Kette bereits durch andere Transaktionen ausgegeben hat: ein veraltetes Commitment eines Kanals, der anders geschlossen wurde. Nichts abzuwarten.',
+
+    // Recovery: Split destination is optional
+    628: 'Zieladresse (optional)',
   },
   pl_PL: {
     0: 'Uruchamianie Core Lightning!',
@@ -1917,6 +1929,12 @@ export default {
 
     // Recovery: Include Sweeps caveat
     626: 'Odtwórz także transakcje wydające wyjścia zamknięć (zbieranie, transakcje HTLC). Zwykle instancja BLAKE2b robi własne; użyj tylko wtedy, gdy nie może, i nigdy po wypłacie wykonanej poza tym pakietem, która wydaje wyłącznie wyjścia zamknięć: nie da się jej odróżnić od zbierania, a jej odtworzenie zapłaciłoby na BLAKE2b na jej adres docelowy z SHA256d.',
+
+    // Recovery: stale commitments (P23)
+    627: 'ZASTĄPIONE: ${count} transakcja(e) kanału, które portfel widział, ale żaden blok ich nie przyjął (${list}), wydają wejścia, które łańcuch BLAKE2b wydał już innymi transakcjami: nieaktualny commitment kanału zamkniętego w inny sposób. Nie ma na co czekać.',
+
+    // Recovery: Split destination is optional
+    628: 'Adres docelowy (opcjonalnie)',
   },
   fr_FR: {
     0: 'Démarrage de Core Lightning !',
@@ -2556,5 +2574,11 @@ export default {
 
     // Recovery: Include Sweeps caveat
     626: "Rejouer aussi les transactions qui dépensent les sorties des fermetures (balayages, transactions HTLC). Normalement l'instance BLAKE2b fait les siennes ; n'utilisez ceci que si elle ne le peut pas, et jamais après un retrait fait hors de ce paquet qui ne dépense que des sorties de fermeture : il ne se distingue pas d'un balayage, et le rejouer paierait sa destination SHA256d sur BLAKE2b.",
+
+    // Recovery: stale commitments (P23)
+    627: "REMPLACÉES : ${count} transaction(s) de canal que le portefeuille a vues mais qu'aucun bloc n'a prises (${list}) dépensent des entrées que la chaîne BLAKE2b a déjà dépensées par d'autres transactions : un engagement périmé d'un canal fermé autrement. Rien à attendre.",
+
+    // Recovery: Split destination is optional
+    628: 'Adresse de destination (facultatif)',
   },
 } satisfies Record<string, LangDict>
