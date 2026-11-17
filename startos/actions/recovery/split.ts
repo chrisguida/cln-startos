@@ -1,7 +1,13 @@
 import { T } from '@start9labs/start-sdk'
 import { i18n } from '../../i18n'
-import { assertAboveFloor, perkb } from '../../recovery/fees'
-import { sat, WalletOutput, walletTotals } from '../../recovery/node'
+import {
+  describeFee,
+  feerateInput,
+  mempoolFee,
+  resolveFeerate,
+  storedEstimates,
+} from '../../recovery/fees'
+import { WalletOutput, walletTotals } from '../../recovery/node'
 import { group, literal, row, stillRunning } from '../../recovery/report'
 import { audit, saveRawTx } from '../../recovery/snapshot'
 import { spendable } from '../../recovery/status'
@@ -14,8 +20,8 @@ const { InputSpec, Value } = sdk
 /** SIGHASH_ALL with the unified flag: valid on the BLAKE2b chain only. */
 const unifiedSighash = '21'
 
-type Withdrawn = { tx: string; txid: string }
 type Decoded = {
+  txid: string
   vin: { txinwitness?: string[] }[]
   vout: { value: number }[]
 }
@@ -40,17 +46,32 @@ const sighashes = (decoded: Decoded) =>
 const keepsReserve = (decoded: Decoded) =>
   decoded.vout.some((o) => Math.round(o.value * 1e8) === anchorReserveSat)
 
+const msatNumber = (v: number | string) =>
+  typeof v === 'number' ? v : parseInt(String(v), 10)
+
+const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e))
+
+/**
+ * The weight fundpsbt does not add itself: the transaction's fixed fields
+ * (version, locktime, counts, segwit marker: 42) and the one P2TR output
+ * (8 + 1 + 34 bytes: 172).
+ */
+const startweight = 214
+
 export const recoverySplit = sdk.Action.withInput(
   'recovery-split',
 
   async ({ effects }) => ({
     name: i18n('Recovery: Split Coins'),
     description: i18n(
-      "Moves the BLAKE2b instance's on-chain balance in transactions that are valid on the BLAKE2b chain only, so that the coins on the two chains can no longer be spent by one transaction. First it spends a single output as a test, then everything else. Afterwards Withdraw can send the SHA256d coins.",
+      "Moves the BLAKE2b instance's whole on-chain balance in one transaction that is valid on the BLAKE2b chain only, so that the coins on the two chains can no longer be spent by one transaction. The transaction is built and signed first, and sent only once every input is seen to carry the BLAKE2b-only signature hash; otherwise nothing is sent. Afterwards Withdraw can send the SHA256d coins.",
     ),
-    warning: i18n(
-      'Run it once Recovery: Status shows the BLAKE2b wallet in agreement with its chain. This spends the whole confirmed on-chain balance of the BLAKE2b instance.',
-    ),
+    warning: [
+      i18n(
+        'Run it once Recovery: Status shows the BLAKE2b wallet in agreement with its chain. This spends the whole confirmed on-chain balance of the BLAKE2b instance.',
+      ),
+      await storedEstimates(effects, 'blake2b'),
+    ].join(' '),
     allowedStatuses: 'only-running',
     group: i18n('Recovery'),
     visibility: 'enabled',
@@ -66,24 +87,12 @@ export const recoverySplit = sdk.Action.withInput(
       default: null,
       placeholder: 'bc1…',
     }),
-    feerate: Value.number({
-      name: i18n('Feerate'),
-      description: i18n(
-        'An explicit feerate; values below 1100 are refused. Bitcoin Knots relays nothing below 1 sat per vbyte.',
-      ),
-      required: true,
-      default: 3000,
-      min: 1,
-      integer: true,
-      units: 'sat per 1000 vbytes',
-    }),
+    feerate: feerateInput(),
   }),
 
   async ({ effects }) => ({}),
 
   async ({ effects, input }): Promise<T.ActionResult & { version: '1' }> => {
-    assertAboveFloor(input.feerate)
-    const feerate = perkb(input.feerate)
     const given = input.destination?.trim() || null
     return withChains(effects, 'recovery-split', async (chains) => {
       const tools = chains.blake2b
@@ -97,13 +106,8 @@ export const recoverySplit = sdk.Action.withInput(
       if (!(await tools.lightningUp())) {
         throw new Error(i18n('The BLAKE2b instance is not answering.'))
       }
-      const address = async () =>
-        given ??
-        (
-          await tools.lightning<{ p2tr: string }>('newaddr', {
-            addresstype: 'p2tr',
-          })
-        ).p2tr
+      const fee = await resolveFeerate(tools, input.feerate)
+      const feerate = fee.param
       const funds = async () =>
         (
           await tools.lightning<{ outputs: WalletOutput[] }>(
@@ -124,103 +128,159 @@ export const recoverySplit = sdk.Action.withInput(
           result: null,
         }
       }
+      const total = walletTotals(outputs).confirmed
+      await audit('split', {
+        feerate,
+        destination: given,
+        estimates: fee.estimates,
+        outputs: outputs.length,
+        total,
+      })
 
-      // The test spend. A signing refusal takes lightningd down, so the first
-      // attempt risks one small output and nothing else.
-      const smallest = outputs.reduce((a, b) =>
-        b.amount_msat < a.amount_msat ? b : a,
-      )
-      const first = `${smallest.txid}:${smallest.output}`
-      await audit('split-test', { utxo: first, feerate, destination: given })
-      let test: Withdrawn
+      // One transaction for everything, built and signed inside lightningd.
+      // Nothing is broadcast until every input is seen to carry the
+      // BLAKE2b-only sighash, so a wrongly signed transaction costs nothing.
+      let psbt: string
+      let excessSat: number
       try {
-        test = await tools.lightning<Withdrawn>(
-          'withdraw',
-          {
-            destination: await address(),
-            satoshi: 'all',
-            feerate,
-            utxos: [first],
-          },
+        const funded = await tools.lightning<{
+          psbt: string
+          excess_msat: number | string
+          change_outnum?: number
+          estimated_final_weight: number
+        }>(
+          'fundpsbt',
+          { satoshi: 'all', feerate, startweight, reserve: 72 },
           slow,
         )
+        psbt = funded.psbt
+        excessSat = Math.floor(msatNumber(funded.excess_msat) / 1000)
       } catch (e) {
-        const running = stillRunning('withdraw', e)
+        const running = stillRunning('fundpsbt', e)
         if (running) return running
         throw new Error(
           i18n(
-            'The test spend of one output (${utxo}, ${amount} sat) failed, and nothing else was spent: ${error}. If the BLAKE2b instance stopped, it refused to sign: check its logs before trying again.',
-            {
-              utxo: first,
-              amount: String(sat(smallest.amount_msat)),
-              error: literal(e instanceof Error ? e.message : String(e)),
-            },
+            'Building the transaction failed, and nothing was spent: ${error}',
+            { error: literal(errorText(e)) },
           ),
         )
       }
-      await saveRawTx('split', test.txid, test.tx)
-      const testDecoded = await decode(tools, test.tx)
-      const testSighashes = sighashes(testDecoded)
-      const rows: T.ActionResultMember[] = [
-        group(i18n('Test spend'), [
-          row(i18n('Transaction ID'), test.txid, true),
-          row(
-            i18n('Output spent'),
-            `${first}, ${sat(smallest.amount_msat)} sat`,
+      const release = () =>
+        tools.lightning('unreserveinputs', { psbt }).catch(() => {})
+
+      try {
+        const destination =
+          given ??
+          (
+            await tools.lightning<{ p2tr: string }>('newaddr', {
+              addresstype: 'p2tr',
+            })
+          ).p2tr
+        psbt = (
+          await tools.lightning<{ psbt: string }>('addpsbtoutput', {
+            satoshi: `${excessSat}sat`,
+            initialpsbt: psbt,
+            destination,
+          })
+        ).psbt
+        psbt = (
+          await tools.lightning<{ signed_psbt: string }>(
+            'signpsbt',
+            { psbt },
+            slow,
+          )
+        ).signed_psbt
+      } catch (e) {
+        const running = stillRunning('signpsbt', e)
+        if (running) return running
+        await release()
+        throw new Error(
+          i18n(
+            'Signing the transaction failed, and nothing was spent: ${error}. If the BLAKE2b instance stopped, it refused to sign: check its logs before trying again.',
+            { error: literal(errorText(e)) },
           ),
-          row(i18n('Signature hash types'), testSighashes.join(', ')),
-          row(i18n('Raw transaction'), test.tx, true),
-        ]),
+        )
+      }
+
+      // Read the signatures back through the backend (PSBT version 0 for it).
+      let decoded: Decoded
+      try {
+        const v0 = (
+          await tools.lightning<{ psbt: string }>('setpsbtversion', {
+            psbt,
+            version: 0,
+          })
+        ).psbt
+        const final = await tools.bitcoin<{ hex?: string; complete: boolean }>(
+          'finalizepsbt',
+          [v0, true],
+        )
+        if (!final.complete || !final.hex) {
+          throw new Error('the backend could not finalize the signed PSBT')
+        }
+        decoded = await decode(tools, final.hex)
+      } catch (e) {
+        await release()
+        throw new Error(
+          i18n(
+            'The signed transaction could not be checked, so it was not sent and its inputs were released: ${error}',
+            { error: literal(errorText(e)) },
+          ),
+        )
+      }
+      const types = sighashes(decoded)
+      const rows: T.ActionResultMember[] = [
+        row(i18n('Transaction ID'), decoded.txid, true),
+        row(
+          i18n('Coins moved'),
+          `${decoded.vin.length} input(s), ${total} sat, to ${excessSat} sat`,
+        ),
+        row(i18n('Signature hash types'), types.join(', ')),
+        row(i18n('Feerate'), fee.source),
       ]
-      if (!testSighashes.every((s) => s === unifiedSighash)) {
-        await audit('split-stopped', { txid: test.txid, testSighashes })
+      if (!types.every((s) => s === unifiedSighash)) {
+        await release()
+        await audit('split-stopped', { txid: decoded.txid, types })
         return {
           version: '1',
-          title: i18n('Split stopped after the test spend'),
+          title: i18n('Split stopped before broadcast'),
           message: i18n(
-            'STOPPED: the test spend ${txid} is not signed with the BLAKE2b-only signature hash (types: ${types}). It may be valid on the other chain as well, so the rest of the wallet was left alone.',
-            { txid: test.txid, types: testSighashes.join(', ') },
+            'STOPPED: the signed transaction ${txid} does not carry the BLAKE2b-only signature hash on every input (types: ${types}). It would be valid on the other chain as well, so it was NOT sent and its inputs were released. Nothing was spent.',
+            { txid: decoded.txid, types: types.join(', ') },
           ),
           result: { type: 'group', value: rows },
         }
       }
 
-      // Everything else. minconf=1 leaves the unconfirmed test output out.
-      let rest: Withdrawn | null = null
-      let restError: string | null = null
-      if (outputs.length > 1) {
-        try {
-          rest = await tools.lightning<Withdrawn>(
-            'withdraw',
-            { destination: await address(), satoshi: 'all', feerate },
-            slow,
-          )
-          await saveRawTx('split', rest.txid, rest.tx)
-        } catch (e) {
-          const running = stillRunning('withdraw', e)
-          if (running) return running
-          restError = e instanceof Error ? e.message : String(e)
-        }
-      }
-      let reserveKept = keepsReserve(testDecoded)
-      if (rest) {
-        const restDecoded = await decode(tools, rest.tx)
-        reserveKept ||= keepsReserve(restDecoded)
-        rows.push(
-          group(i18n('Remaining outputs'), [
-            row(i18n('Transaction ID'), rest.txid, true),
-            row(
-              i18n('Signature hash types'),
-              sighashes(restDecoded).join(', '),
-            ),
-            row(i18n('Raw transaction'), rest.tx, true),
-          ]),
+      let sent: { tx: string; txid: string }
+      try {
+        sent = await tools.lightning<{ tx: string; txid: string }>(
+          'sendpsbt',
+          { psbt },
+          slow,
+        )
+      } catch (e) {
+        const running = stillRunning('sendpsbt', e)
+        if (running) return running
+        await release()
+        throw new Error(
+          i18n(
+            'Broadcasting the transaction failed, and its inputs were released: ${error}',
+            { error: literal(errorText(e)) },
+          ),
         )
       }
+      await saveRawTx('split', sent.txid, sent.tx)
+      rows.push(
+        row(i18n('Fee paid'), describeFee(await mempoolFee(tools, sent.txid))),
+        row(i18n('Raw transaction'), sent.tx, true),
+      )
+      const reserveKept = keepsReserve(decoded)
       await audit('split-result', {
-        test: test.txid,
-        rest: rest?.txid,
-        restError,
+        txid: sent.txid,
+        inputs: decoded.vin.length,
+        types,
+        reserveKept,
       })
 
       const left = (await funds()).filter(spendable)
@@ -231,26 +291,16 @@ export const recoverySplit = sdk.Action.withInput(
 
       return {
         version: '1',
-        title: restError ? i18n('Split incomplete') : i18n('Split broadcast'),
+        title: i18n('Split broadcast'),
         message: [
           i18n(
-            'Test spend ${txid} broadcast, signed for the BLAKE2b chain only.',
-            { txid: test.txid },
+            'Split ${txid} broadcast: ${count} coin(s) worth ${amount} sat moved in one transaction, every input signed for the BLAKE2b chain only (checked before sending).',
+            {
+              txid: sent.txid,
+              count: String(decoded.vin.length),
+              amount: String(total),
+            },
           ),
-          ...(rest
-            ? [
-                i18n('The remaining outputs were swept in ${txid}.', {
-                  txid: rest.txid,
-                }),
-              ]
-            : []),
-          ...(restError
-            ? [
-                i18n('Sweeping the remaining outputs failed: ${error}', {
-                  error: literal(restError),
-                }),
-              ]
-            : []),
           ...(reserveKept
             ? [
                 i18n(
@@ -268,7 +318,7 @@ export const recoverySplit = sdk.Action.withInput(
               ]
             : []),
           i18n(
-            'Wait for the transactions to confirm, then run Recovery: Status: Withdraw can then send the SHA256d coins.',
+            'Wait for the transaction to confirm, then run Recovery: Status: Withdraw can then send the SHA256d coins.',
           ),
         ].join('\n\n'),
         result: { type: 'group', value: rows },

@@ -683,6 +683,75 @@ const dict = {
 
   // Recovery: Split destination is optional
   'Destination Address (optional)': 628,
+
+  // Recovery: fee targets and estimates (Split, Withdraw, Status)
+  'next block or two': 629,
+  'within about an hour': 630,
+  'within about a day': 631,
+  'Next block or two': 633,
+  Custom: 636,
+  'FEE ESTIMATES: none. Core Lightning did not answer the feerates call.': 637,
+  'custom: ${rate} sat per vbyte': 640,
+  ', raised to the minimum of ${min}': 643,
+  'Fee estimates': 644,
+
+  // Recovery: fee source choice, node and public explorer (Split, Withdraw, Status)
+  'next block': 645,
+  'within about half an hour': 646,
+  economy: 647,
+  "Where the rate comes from, read at the moment the action runs. Your node's estimate is private, but needs a Bitcoin backend that has watched transactions confirm for a while. The public explorer's estimate sees the whole mempool, and the explorer learns that your address asked. Recovery: Status shows both so you can compare them. Custom takes an explicit rate.": 648,
+  'Confirm within': 650,
+  'About an hour (6 blocks)': 651,
+  'About a day (100 blocks)': 652,
+  'Next block': 654,
+  'About half an hour': 655,
+  'About an hour': 656,
+  Economy: 657,
+  'no activation block to compare with': 658,
+  '${host}: follows another chain': 659,
+  '${host}: answered without fee estimates': 660,
+  '${host}: follows this chain': 661,
+  '${host} (follows this chain, tip ${tip}) says: next block ${fastest}, within about half an hour ${halfHour}, within about an hour ${hour}, economy ${economy} sat per vbyte.': 662,
+  'No public explorer that follows this chain answered (${tried}).': 663,
+  "UNRELIABLE FEE ESTIMATES: ${backend} has no estimate for ${targets} (it says: ${errors}). It has been running for ${uptime} and may need more time to watch transactions confirm. Split and Withdraw refuse those targets of your node until it has one; the explorer's estimate and Custom still work.": 664,
+  'Fee estimates of your node, from ${backend} (sat per vbyte): next block or two ${fast}, within about an hour ${medium}, within about a day ${slow}; it relays nothing below ${floor}. It has been running for ${uptime}.': 665,
+  "NOTE: your node's next-block estimate and the explorer's are more than two to one apart. A backend started recently has seen few transactions confirm, and the explorer's mempool is not your node's. Choose the source you trust.": 666,
+  'your node had no next-block estimate': 667,
+  'your node said ${rate} sat per vbyte for the next block or two': 668,
+  '${host} said ${rate} sat per vbyte for the next block': 669,
+  'no public explorer answered': 670,
+  "Refused: no public explorer that follows this chain answered (${tried}). Use your node's estimate or Custom.": 671,
+  "${host}'s estimate for ${target}: ${rate} sat per vbyte${raised}": 672,
+  "your node's estimate for ${target} (${blocks} blocks), from ${backend}: ${estimate} sat per vbyte${raised}": 674,
+
+  // Recovery: fee source choice (continued)
+  'Refused: your node has no fee estimate for "${target}" (${blocks} blocks) yet. ${backend} says: ${errors}; it has been running for ${uptime}. Run Recovery: Status to see the estimates there are, wait for it to gather data, or use the explorer\'s estimate or Custom.': 675,
+
+  // Recovery: short fee source labels (the dropdown cannot wrap)
+  'Your node': 676,
+  'Public explorer': 677,
+
+  // Recovery: last fee estimates shown in the Split and Withdraw dialogs
+  'Fee estimates: none saved yet. Run Recovery: Status first; it reads them from your node and the public explorer and shows them here.': 678,
+  'Fee estimates ${chain} as of ${at} (run Recovery: Status to refresh): ${text}': 679,
+  'on the BLAKE2b chain': 680,
+  'on the SHA256d chain': 681,
+
+  // Recovery: Split as one signed-then-verified transaction
+  "Moves the BLAKE2b instance's whole on-chain balance in one transaction that is valid on the BLAKE2b chain only, so that the coins on the two chains can no longer be spent by one transaction. The transaction is built and signed first, and sent only once every input is seen to carry the BLAKE2b-only signature hash; otherwise nothing is sent. Afterwards Withdraw can send the SHA256d coins.": 682,
+  'Building the transaction failed, and nothing was spent: ${error}': 683,
+  'Signing the transaction failed, and nothing was spent: ${error}. If the BLAKE2b instance stopped, it refused to sign: check its logs before trying again.': 684,
+  'The signed transaction could not be checked, so it was not sent and its inputs were released: ${error}': 685,
+  'Coins moved': 686,
+  'Split stopped before broadcast': 687,
+  'STOPPED: the signed transaction ${txid} does not carry the BLAKE2b-only signature hash on every input (types: ${types}). It would be valid on the other chain as well, so it was NOT sent and its inputs were released. Nothing was spent.': 688,
+  'Broadcasting the transaction failed, and its inputs were released: ${error}': 689,
+  'Split ${txid} broadcast: ${count} coin(s) worth ${amount} sat moved in one transaction, every input signed for the BLAKE2b chain only (checked before sending).': 690,
+  'Wait for the transaction to confirm, then run Recovery: Status: Withdraw can then send the SHA256d coins.': 691,
+
+  // Recovery: split pending in the BLAKE2b mempool (P26)
+  'NEXT: wait for the split transaction to confirm on the BLAKE2b chain: ${count} coin(s) are spent by it in the BLAKE2b mempool only. Then run Recovery: Status again.': 692,
+  'SPLIT PENDING: ${count} coin(s) worth ${amount} sat are spent on BLAKE2b only in the mempool, by a transaction no block has taken yet. Withdraw holds them back until it confirms.': 693,
 } as const
 
 /**

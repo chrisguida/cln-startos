@@ -1,10 +1,11 @@
 import { T } from '@start9labs/start-sdk'
 import { i18n } from '../../i18n'
 import {
-  assertAboveFloor,
   describeFee,
+  feerateInput,
   mempoolFee,
-  perkb,
+  resolveFeerate,
+  storedEstimates,
 } from '../../recovery/fees'
 import { isResolved, sat, walletTotals } from '../../recovery/node'
 import { chainRecord, literal, row, stillRunning } from '../../recovery/report'
@@ -26,9 +27,12 @@ export const recoveryWithdraw = sdk.Action.withInput(
     description: i18n(
       'Sends the on-chain balance on the SHA256d chain to one address, and saves the raw transaction in recovery/final. Only coins that are spent or unknown on the BLAKE2b chain are sent: a coin still unspent there would be moved on both chains by the one transaction, so it waits for Recovery: Split Coins.',
     ),
-    warning: i18n(
-      'Use an address of a wallet whose keys you hold, never an exchange or custodial deposit address. The transaction is signed the old way, so if the BLAKE2b check were ever wrong it could be copied to that chain by anybody.',
-    ),
+    warning: [
+      i18n(
+        'Use an address of a wallet whose keys you hold, never an exchange or custodial deposit address. The transaction is signed the old way, so if the BLAKE2b check were ever wrong it could be copied to that chain by anybody.',
+      ),
+      await storedEstimates(effects, 'sha256d'),
+    ].join(' '),
     allowedStatuses: 'only-running',
     group: i18n('Recovery'),
     visibility: 'enabled',
@@ -44,17 +48,7 @@ export const recoveryWithdraw = sdk.Action.withInput(
       default: null,
       placeholder: 'bc1…',
     }),
-    feerate: Value.number({
-      name: i18n('Feerate'),
-      description: i18n(
-        'Fee for the withdrawal. It must pay at least 1 sat per vbyte by itself to be replayed on the other chain; values below 1100 are refused.',
-      ),
-      required: true,
-      default: 3000,
-      min: 1,
-      integer: true,
-      units: 'sat per 1000 vbytes',
-    }),
+    feerate: feerateInput(),
     acknowledged: Value.toggle({
       name: i18n('I hold the keys of this address'),
       description: i18n(
@@ -74,7 +68,6 @@ export const recoveryWithdraw = sdk.Action.withInput(
   async ({ effects }) => ({}),
 
   async ({ effects, input }): Promise<T.ActionResult & { version: '1' }> => {
-    assertAboveFloor(input.feerate)
     if (!input.acknowledged) {
       throw new Error(
         i18n(
@@ -138,7 +131,9 @@ export const recoveryWithdraw = sdk.Action.withInput(
       }
       const coins = {
         safe: recovery.coins.safe.filter(spendable),
-        shared: recovery.coins.shared.filter(spendable),
+        shared: [...recovery.coins.shared, ...recovery.coins.pending].filter(
+          spendable,
+        ),
       }
       if (!coins.safe.length) {
         throw new Error(
@@ -154,9 +149,11 @@ export const recoveryWithdraw = sdk.Action.withInput(
         )
       }
       const utxos = coins.safe.map((o) => `${o.txid}:${o.output}`)
+      const rate = await resolveFeerate(tools, input.feerate)
       await audit('withdraw', {
         destination,
-        feerate: perkb(input.feerate),
+        feerate: rate.param,
+        estimates: rate.estimates,
         utxos,
         held: coins.shared.map((o) => `${o.txid}:${o.output}`),
       })
@@ -167,7 +164,7 @@ export const recoveryWithdraw = sdk.Action.withInput(
           {
             destination,
             satoshi: 'all',
-            feerate: perkb(input.feerate),
+            feerate: rate.param,
             utxos,
           },
           slow,
@@ -228,6 +225,7 @@ export const recoveryWithdraw = sdk.Action.withInput(
           type: 'group',
           value: [
             row(i18n('Transaction ID'), res.txid, true),
+            row(i18n('Feerate'), rate.source),
             row(i18n('Fee paid'), describeFee(fee)),
             row(
               i18n('Coins sent'),

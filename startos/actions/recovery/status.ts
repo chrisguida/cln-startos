@@ -20,6 +20,6 @@ export const recoveryStatus = sdk.Action.withoutInput(
 
   async ({ effects }): Promise<T.ActionResult & { version: '1' }> =>
     withChains(effects, 'recovery-status', async (chains) =>
-      statusResult(await readRecovery(chains)),
+      statusResult(await readRecovery(chains), effects),
     ),
 )

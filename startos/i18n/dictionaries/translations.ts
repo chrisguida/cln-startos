@@ -645,6 +645,75 @@ export default {
 
     // Recovery: Split destination is optional
     628: 'Dirección de destino (opcional)',
+
+    // Recovery: fee targets and estimates (Split, Withdraw, Status)
+    629: 'en el próximo bloque o dos',
+    630: 'en aproximadamente una hora',
+    631: 'en aproximadamente un día',
+    633: 'Próximo bloque o dos',
+    636: 'Personalizada',
+    637: 'ESTIMACIONES DE COMISIÓN: ninguna. Core Lightning no respondió a la llamada feerates.',
+    640: 'personalizada: ${rate} sat por vbyte',
+    643: ', elevada al mínimo de ${min}',
+    644: 'Estimaciones de comisión',
+
+    // Recovery: fee source choice, node and public explorer (Split, Withdraw, Status)
+    645: 'próximo bloque',
+    646: 'en aproximadamente media hora',
+    647: 'económica',
+    648: 'De dónde viene la tasa, leída en el momento en que se ejecuta la acción. La estimación de su propio nodo es privada, pero necesita un backend de Bitcoin que lleve un tiempo viendo confirmarse transacciones. La estimación del explorador público ve toda la mempool, y el explorador se entera de que su dirección preguntó. Recovery: Status muestra ambas para que pueda compararlas. Custom toma una tasa explícita.',
+    650: 'Confirmar en',
+    651: 'Aproximadamente una hora (6 bloques)',
+    652: 'Aproximadamente un día (100 bloques)',
+    654: 'Próximo bloque',
+    655: 'Aproximadamente media hora',
+    656: 'Aproximadamente una hora',
+    657: 'Económica',
+    658: 'no hay bloque de activación con el que comparar',
+    659: '${host}: sigue otra cadena',
+    660: '${host}: respondió sin estimaciones de comisión',
+    661: '${host}: sigue esta cadena',
+    662: '${host} (sigue esta cadena, punta ${tip}) dice: próximo bloque ${fastest}, en aproximadamente media hora ${halfHour}, en aproximadamente una hora ${hour}, económica ${economy} sat por vbyte.',
+    663: 'Ningún explorador público que siga esta cadena respondió (${tried}).',
+    664: 'ESTIMACIONES DE COMISIÓN NO FIABLES: ${backend} no tiene estimación para ${targets} (dice: ${errors}). Lleva ${uptime} en marcha y puede necesitar más tiempo para ver confirmarse transacciones. Split y Withdraw rechazan esos objetivos de su nodo hasta que tenga una; la estimación del explorador y Custom siguen funcionando.',
+    665: 'Estimaciones de comisión de su nodo, de ${backend} (sat por vbyte): próximo bloque o dos ${fast}, en aproximadamente una hora ${medium}, en aproximadamente un día ${slow}; no retransmite nada por debajo de ${floor}. Lleva ${uptime} en marcha.',
+    666: 'NOTA: la estimación de próximo bloque de su nodo y la del explorador difieren en más de dos a uno. Un backend iniciado hace poco ha visto confirmarse pocas transacciones, y la mempool del explorador no es la de su nodo. Elija la fuente en la que confíe.',
+    667: 'su nodo no tenía estimación de próximo bloque',
+    668: 'su nodo decía ${rate} sat por vbyte para el próximo bloque o dos',
+    669: '${host} decía ${rate} sat por vbyte para el próximo bloque',
+    670: 'ningún explorador público respondió',
+    671: 'Rechazado: ningún explorador público que siga esta cadena respondió (${tried}). Use la estimación de su nodo o Custom.',
+    672: 'estimación de ${host} para ${target}: ${rate} sat por vbyte${raised}',
+    674: 'estimación de su nodo para ${target} (${blocks} bloques), de ${backend}: ${estimate} sat por vbyte${raised}',
+
+    // Recovery: fee source choice (continued)
+    675: 'Rechazado: su nodo aún no tiene estimación de comisión para "${target}" (${blocks} bloques). ${backend} dice: ${errors}; lleva ${uptime} en marcha. Ejecute Recovery: Status para ver las estimaciones que hay, espere a que reúna datos, o use la estimación del explorador o Custom.',
+
+    // Recovery: short fee source labels (the dropdown cannot wrap)
+    676: 'Su nodo',
+    677: 'Explorador público',
+
+    // Recovery: last fee estimates shown in the Split and Withdraw dialogs
+    678: 'Estimaciones de comisión: ninguna guardada aún. Ejecute primero Recovery: Status; las lee de su nodo y del explorador público y las muestra aquí.',
+    679: 'Estimaciones de comisión ${chain} a las ${at} (ejecute Recovery: Status para actualizar): ${text}',
+    680: 'en la cadena BLAKE2b',
+    681: 'en la cadena SHA256d',
+
+    // Recovery: Split as one signed-then-verified transaction
+    682: 'Mueve todo el saldo en cadena de la instancia BLAKE2b en una sola transacción válida únicamente en la cadena BLAKE2b, de modo que las monedas de las dos cadenas ya no puedan gastarse con una misma transacción. La transacción se construye y se firma primero, y solo se envía cuando se comprueba que cada entrada lleva el hash de firma exclusivo de BLAKE2b; de lo contrario no se envía nada. Después, Withdraw puede enviar las monedas SHA256d.',
+    683: 'La construcción de la transacción falló y no se gastó nada: ${error}',
+    684: 'La firma de la transacción falló y no se gastó nada: ${error}. Si la instancia BLAKE2b se detuvo, se negó a firmar: revise sus registros antes de volver a intentarlo.',
+    685: 'La transacción firmada no pudo comprobarse, así que no se envió y sus entradas se liberaron: ${error}',
+    686: 'Monedas movidas',
+    687: 'Split detenido antes de la difusión',
+    688: 'DETENIDO: la transacción firmada ${txid} no lleva el hash de firma exclusivo de BLAKE2b en todas sus entradas (tipos: ${types}). Sería válida también en la otra cadena, así que NO se envió y sus entradas se liberaron. No se gastó nada.',
+    689: 'La difusión de la transacción falló y sus entradas se liberaron: ${error}',
+    690: 'Split ${txid} difundido: ${count} moneda(s) por ${amount} sat movidas en una sola transacción, cada entrada firmada solo para la cadena BLAKE2b (comprobado antes de enviar).',
+    691: 'Espere a que la transacción se confirme y luego ejecute Recovery: Status: Withdraw podrá entonces enviar las monedas SHA256d.',
+
+    // Recovery: split pending in the BLAKE2b mempool (P26)
+    692: 'SIGUIENTE: espere a que la transacción de split se confirme en la cadena BLAKE2b: ${count} moneda(s) solo están gastadas por ella en la mempool de BLAKE2b. Luego ejecute Recovery: Status de nuevo.',
+    693: 'SPLIT PENDIENTE: ${count} moneda(s) por ${amount} sat están gastadas en BLAKE2b solo en la mempool, por una transacción que ningún bloque ha tomado aún. Withdraw las retiene hasta que se confirme.',
   },
   de_DE: {
     0: 'Core Lightning wird gestartet!',
@@ -1290,6 +1359,75 @@ export default {
 
     // Recovery: Split destination is optional
     628: 'Zieladresse (optional)',
+
+    // Recovery: fee targets and estimates (Split, Withdraw, Status)
+    629: 'im nächsten Block oder zwei',
+    630: 'innerhalb von etwa einer Stunde',
+    631: 'innerhalb von etwa einem Tag',
+    633: 'Nächster Block oder zwei',
+    636: 'Benutzerdefiniert',
+    637: 'GEBÜHRENSCHÄTZUNGEN: keine. Core Lightning hat den feerates-Aufruf nicht beantwortet.',
+    640: 'benutzerdefiniert: ${rate} sat pro vByte',
+    643: ', angehoben auf das Minimum von ${min}',
+    644: 'Gebührenschätzungen',
+
+    // Recovery: fee source choice, node and public explorer (Split, Withdraw, Status)
+    645: 'nächster Block',
+    646: 'innerhalb von etwa einer halben Stunde',
+    647: 'sparsam',
+    648: 'Woher die Rate kommt, gelesen im Moment der Ausführung. Die Schätzung Ihres eigenen Nodes ist privat, braucht aber ein Bitcoin-Backend, das eine Weile lang Transaktionen hat bestätigen sehen. Die Schätzung des öffentlichen Explorers sieht den ganzen Mempool, und der Explorer erfährt, dass Ihre Adresse gefragt hat. Recovery: Status zeigt beide, damit Sie sie vergleichen können. Custom nimmt eine explizite Rate.',
+    650: 'Bestätigung innerhalb',
+    651: 'Etwa eine Stunde (6 Blöcke)',
+    652: 'Etwa ein Tag (100 Blöcke)',
+    654: 'Nächster Block',
+    655: 'Etwa eine halbe Stunde',
+    656: 'Etwa eine Stunde',
+    657: 'Sparsam',
+    658: 'kein Aktivierungsblock zum Vergleichen',
+    659: '${host}: folgt einer anderen Chain',
+    660: '${host}: antwortete ohne Gebührenschätzungen',
+    661: '${host}: folgt dieser Chain',
+    662: '${host} (folgt dieser Chain, Spitze ${tip}) sagt: nächster Block ${fastest}, innerhalb von etwa einer halben Stunde ${halfHour}, innerhalb von etwa einer Stunde ${hour}, sparsam ${economy} sat pro vByte.',
+    663: 'Kein öffentlicher Explorer, der dieser Chain folgt, hat geantwortet (${tried}).',
+    664: 'UNZUVERLÄSSIGE GEBÜHRENSCHÄTZUNGEN: ${backend} hat keine Schätzung für ${targets} (es sagt: ${errors}). Es läuft seit ${uptime} und braucht vielleicht mehr Zeit, um Transaktionen bestätigen zu sehen. Split und Withdraw lehnen diese Ziele Ihres Nodes ab, bis es eine hat; die Schätzung des Explorers und Custom funktionieren weiterhin.',
+    665: 'Gebührenschätzungen Ihres Nodes, von ${backend} (sat pro vByte): nächster Block oder zwei ${fast}, innerhalb von etwa einer Stunde ${medium}, innerhalb von etwa einem Tag ${slow}; unter ${floor} leitet es nichts weiter. Es läuft seit ${uptime}.',
+    666: 'HINWEIS: die Schätzung Ihres Nodes für den nächsten Block und die des Explorers liegen mehr als zwei zu eins auseinander. Ein kürzlich gestartetes Backend hat wenige Transaktionen bestätigen sehen, und der Mempool des Explorers ist nicht der Ihres Nodes. Wählen Sie die Quelle, der Sie vertrauen.',
+    667: 'Ihr Node hatte keine Schätzung für den nächsten Block',
+    668: 'Ihr Node sagte ${rate} sat pro vByte für den nächsten Block oder zwei',
+    669: '${host} sagte ${rate} sat pro vByte für den nächsten Block',
+    670: 'kein öffentlicher Explorer hat geantwortet',
+    671: 'Abgelehnt: kein öffentlicher Explorer, der dieser Chain folgt, hat geantwortet (${tried}). Verwenden Sie die Schätzung Ihres Nodes oder Custom.',
+    672: 'Schätzung von ${host} für ${target}: ${rate} sat pro vByte${raised}',
+    674: 'Schätzung Ihres Nodes für ${target} (${blocks} Blöcke), von ${backend}: ${estimate} sat pro vByte${raised}',
+
+    // Recovery: fee source choice (continued)
+    675: 'Abgelehnt: Ihr Node hat noch keine Gebührenschätzung für "${target}" (${blocks} Blöcke). ${backend} sagt: ${errors}; es läuft seit ${uptime}. Führen Sie Recovery: Status aus, um die vorhandenen Schätzungen zu sehen, warten Sie, bis es Daten gesammelt hat, oder verwenden Sie die Schätzung des Explorers oder Custom.',
+
+    // Recovery: short fee source labels (the dropdown cannot wrap)
+    676: 'Ihr Node',
+    677: 'Öffentlicher Explorer',
+
+    // Recovery: last fee estimates shown in the Split and Withdraw dialogs
+    678: 'Gebührenschätzungen: noch keine gespeichert. Führen Sie zuerst Recovery: Status aus; es liest sie von Ihrem Node und dem öffentlichen Explorer und zeigt sie hier.',
+    679: 'Gebührenschätzungen ${chain}, Stand ${at} (Recovery: Status ausführen zum Aktualisieren): ${text}',
+    680: 'auf der BLAKE2b-Chain',
+    681: 'auf der SHA256d-Chain',
+
+    // Recovery: Split as one signed-then-verified transaction
+    682: 'Bewegt das gesamte On-Chain-Guthaben der BLAKE2b-Instanz in einer Transaktion, die nur auf der BLAKE2b-Chain gültig ist, sodass die Coins der beiden Chains nicht mehr mit einer Transaktion ausgegeben werden können. Die Transaktion wird zuerst gebaut und signiert und erst gesendet, wenn jeder Input nachweislich den nur für BLAKE2b gültigen Signatur-Hash trägt; andernfalls wird nichts gesendet. Danach kann Withdraw die SHA256d-Coins senden.',
+    683: 'Das Bauen der Transaktion schlug fehl, und nichts wurde ausgegeben: ${error}',
+    684: 'Das Signieren der Transaktion schlug fehl, und nichts wurde ausgegeben: ${error}. Wenn die BLAKE2b-Instanz gestoppt hat, hat sie das Signieren verweigert: prüfen Sie ihre Logs, bevor Sie es erneut versuchen.',
+    685: 'Die signierte Transaktion konnte nicht geprüft werden, daher wurde sie nicht gesendet und ihre Inputs wurden freigegeben: ${error}',
+    686: 'Bewegte Coins',
+    687: 'Split vor dem Senden gestoppt',
+    688: 'GESTOPPT: die signierte Transaktion ${txid} trägt nicht auf jedem Input den nur für BLAKE2b gültigen Signatur-Hash (Typen: ${types}). Sie wäre auch auf der anderen Chain gültig, daher wurde sie NICHT gesendet und ihre Inputs wurden freigegeben. Nichts wurde ausgegeben.',
+    689: 'Das Senden der Transaktion schlug fehl, und ihre Inputs wurden freigegeben: ${error}',
+    690: 'Split ${txid} gesendet: ${count} Coin(s) im Wert von ${amount} sat in einer Transaktion bewegt, jeder Input nur für die BLAKE2b-Chain signiert (vor dem Senden geprüft).',
+    691: 'Warten Sie, bis die Transaktion bestätigt ist, und führen Sie dann Recovery: Status aus: Withdraw kann dann die SHA256d-Coins senden.',
+
+    // Recovery: split pending in the BLAKE2b mempool (P26)
+    692: 'WEITER: warten Sie, bis die Split-Transaktion auf der BLAKE2b-Chain bestätigt ist: ${count} Coin(s) sind von ihr nur im BLAKE2b-Mempool ausgegeben. Führen Sie dann Recovery: Status erneut aus.',
+    693: 'SPLIT AUSSTEHEND: ${count} Coin(s) im Wert von ${amount} sat sind auf BLAKE2b nur im Mempool ausgegeben, durch eine Transaktion, die noch kein Block aufgenommen hat. Withdraw hält sie zurück, bis sie bestätigt ist.',
   },
   pl_PL: {
     0: 'Uruchamianie Core Lightning!',
@@ -1935,6 +2073,75 @@ export default {
 
     // Recovery: Split destination is optional
     628: 'Adres docelowy (opcjonalnie)',
+
+    // Recovery: fee targets and estimates (Split, Withdraw, Status)
+    629: 'w następnym bloku lub dwóch',
+    630: 'w ciągu około godziny',
+    631: 'w ciągu około jednego dnia',
+    633: 'Następny blok lub dwa',
+    636: 'Własna',
+    637: 'OSZACOWANIA OPŁAT: brak. Core Lightning nie odpowiedział na wywołanie feerates.',
+    640: 'własna: ${rate} sat na vbajt',
+    643: ', podniesione do minimum ${min}',
+    644: 'Oszacowania opłat',
+
+    // Recovery: fee source choice, node and public explorer (Split, Withdraw, Status)
+    645: 'następny blok',
+    646: 'w ciągu około pół godziny',
+    647: 'ekonomiczna',
+    648: 'Skąd pochodzi stawka, odczytywana w chwili uruchomienia akcji. Oszacowanie własnego węzła jest prywatne, ale wymaga backendu Bitcoin, który od jakiegoś czasu obserwuje potwierdzanie transakcji. Oszacowanie publicznego eksploratora widzi całą mempool, a eksplorator dowiaduje się, że Twój adres pytał. Recovery: Status pokazuje oba, by można je było porównać. Custom przyjmuje jawną stawkę.',
+    650: 'Potwierdzenie w ciągu',
+    651: 'Około godziny (6 bloków)',
+    652: 'Około jednego dnia (100 bloków)',
+    654: 'Następny blok',
+    655: 'Około pół godziny',
+    656: 'Około godziny',
+    657: 'Ekonomiczna',
+    658: 'brak bloku aktywacji do porównania',
+    659: '${host}: śledzi inny łańcuch',
+    660: '${host}: odpowiedział bez oszacowań opłat',
+    661: '${host}: śledzi ten łańcuch',
+    662: '${host} (śledzi ten łańcuch, szczyt ${tip}) mówi: następny blok ${fastest}, w ciągu około pół godziny ${halfHour}, w ciągu około godziny ${hour}, ekonomiczna ${economy} sat na vbajt.',
+    663: 'Żaden publiczny eksplorator śledzący ten łańcuch nie odpowiedział (${tried}).',
+    664: 'NIEWIARYGODNE OSZACOWANIA OPŁAT: ${backend} nie ma oszacowania dla ${targets} (mówi: ${errors}). Działa od ${uptime} i może potrzebować więcej czasu, by obserwować potwierdzanie transakcji. Split i Withdraw odrzucają te cele Twojego węzła, dopóki go nie ma; oszacowanie eksploratora i Custom nadal działają.',
+    665: 'Oszacowania opłat Twojego węzła, z ${backend} (sat na vbajt): następny blok lub dwa ${fast}, w ciągu około godziny ${medium}, w ciągu około jednego dnia ${slow}; nie przekazuje niczego poniżej ${floor}. Działa od ${uptime}.',
+    666: 'UWAGA: oszacowanie Twojego węzła dla następnego bloku i oszacowanie eksploratora różnią się ponad dwukrotnie. Niedawno uruchomiony backend widział niewiele potwierdzonych transakcji, a mempool eksploratora nie jest mempoolem Twojego węzła. Wybierz źródło, któremu ufasz.',
+    667: 'Twój węzeł nie miał oszacowania dla następnego bloku',
+    668: 'Twój węzeł podał ${rate} sat na vbajt dla następnego bloku lub dwóch',
+    669: '${host} podał ${rate} sat na vbajt dla następnego bloku',
+    670: 'żaden publiczny eksplorator nie odpowiedział',
+    671: 'Odmowa: żaden publiczny eksplorator śledzący ten łańcuch nie odpowiedział (${tried}). Użyj oszacowania swojego węzła lub Custom.',
+    672: 'oszacowanie ${host} dla ${target}: ${rate} sat na vbajt${raised}',
+    674: 'oszacowanie Twojego węzła dla ${target} (${blocks} bloków), z ${backend}: ${estimate} sat na vbajt${raised}',
+
+    // Recovery: fee source choice (continued)
+    675: 'Odmowa: Twój węzeł nie ma jeszcze oszacowania opłaty dla "${target}" (${blocks} bloków). ${backend} mówi: ${errors}; działa od ${uptime}. Uruchom Recovery: Status, by zobaczyć dostępne oszacowania, poczekaj, aż zbierze dane, albo użyj oszacowania eksploratora lub Custom.',
+
+    // Recovery: short fee source labels (the dropdown cannot wrap)
+    676: 'Twój węzeł',
+    677: 'Publiczny eksplorator',
+
+    // Recovery: last fee estimates shown in the Split and Withdraw dialogs
+    678: 'Oszacowania opłat: jeszcze nie zapisano. Najpierw uruchom Recovery: Status; odczytuje je z Twojego węzła i publicznego eksploratora i pokazuje je tutaj.',
+    679: 'Oszacowania opłat ${chain} na ${at} (uruchom Recovery: Status, by odświeżyć): ${text}',
+    680: 'na łańcuchu BLAKE2b',
+    681: 'na łańcuchu SHA256d',
+
+    // Recovery: Split as one signed-then-verified transaction
+    682: 'Przenosi całe saldo on-chain instancji BLAKE2b w jednej transakcji ważnej wyłącznie na łańcuchu BLAKE2b, tak aby monet z obu łańcuchów nie dało się już wydać jedną transakcją. Transakcja jest najpierw budowana i podpisywana, a wysyłana dopiero wtedy, gdy każde wejście ma potwierdzony hash podpisu właściwy tylko dla BLAKE2b; w przeciwnym razie nic nie jest wysyłane. Potem Withdraw może wysłać monety SHA256d.',
+    683: 'Budowanie transakcji nie powiodło się i nic nie zostało wydane: ${error}',
+    684: 'Podpisywanie transakcji nie powiodło się i nic nie zostało wydane: ${error}. Jeśli instancja BLAKE2b się zatrzymała, odmówiła podpisania: sprawdź jej logi, zanim spróbujesz ponownie.',
+    685: 'Podpisanej transakcji nie dało się sprawdzić, więc nie została wysłana, a jej wejścia zwolniono: ${error}',
+    686: 'Przeniesione monety',
+    687: 'Split zatrzymany przed rozgłoszeniem',
+    688: 'ZATRZYMANO: podpisana transakcja ${txid} nie ma na każdym wejściu hasha podpisu właściwego tylko dla BLAKE2b (typy: ${types}). Byłaby ważna także na drugim łańcuchu, więc NIE została wysłana, a jej wejścia zwolniono. Nic nie zostało wydane.',
+    689: 'Rozgłoszenie transakcji nie powiodło się, a jej wejścia zwolniono: ${error}',
+    690: 'Split ${txid} rozgłoszony: ${count} monet(y) o wartości ${amount} sat przeniesione w jednej transakcji, każde wejście podpisane tylko dla łańcucha BLAKE2b (sprawdzone przed wysłaniem).',
+    691: 'Poczekaj na potwierdzenie transakcji, a potem uruchom Recovery: Status: Withdraw będzie mógł wtedy wysłać monety SHA256d.',
+
+    // Recovery: split pending in the BLAKE2b mempool (P26)
+    692: 'DALEJ: poczekaj, aż transakcja split potwierdzi się na łańcuchu BLAKE2b: ${count} monet(y) są przez nią wydane tylko w mempoolu BLAKE2b. Potem uruchom ponownie Recovery: Status.',
+    693: 'SPLIT W TOKU: ${count} monet(y) o wartości ${amount} sat są wydane na BLAKE2b tylko w mempoolu, przez transakcję, której żaden blok jeszcze nie przyjął. Withdraw wstrzymuje je do czasu potwierdzenia.',
   },
   fr_FR: {
     0: 'Démarrage de Core Lightning !',
@@ -2580,5 +2787,74 @@ export default {
 
     // Recovery: Split destination is optional
     628: 'Adresse de destination (facultatif)',
+
+    // Recovery: fee targets and estimates (Split, Withdraw, Status)
+    629: 'dans le prochain bloc ou deux',
+    630: 'dans environ une heure',
+    631: 'dans environ un jour',
+    633: 'Prochain bloc ou deux',
+    636: 'Personnalisé',
+    637: "ESTIMATIONS DE FRAIS : aucune. Core Lightning n'a pas répondu à l'appel feerates.",
+    640: 'personnalisé : ${rate} sat par vbyte',
+    643: ', relevée au minimum de ${min}',
+    644: 'Estimations de frais',
+
+    // Recovery: fee source choice, node and public explorer (Split, Withdraw, Status)
+    645: 'prochain bloc',
+    646: 'dans environ une demi-heure',
+    647: 'économique',
+    648: "D'où vient le taux, lu au moment où l'action s'exécute. L'estimation de votre propre nœud est privée, mais demande un backend Bitcoin qui a vu des transactions se confirmer pendant un moment. L'estimation de l'explorateur public voit tout le mempool, et l'explorateur apprend que votre adresse a demandé. Recovery: Status affiche les deux pour que vous puissiez les comparer. Custom prend un taux explicite.",
+    650: 'Confirmation sous',
+    651: 'Environ une heure (6 blocs)',
+    652: 'Environ un jour (100 blocs)',
+    654: 'Prochain bloc',
+    655: 'Environ une demi-heure',
+    656: 'Environ une heure',
+    657: 'Économique',
+    658: "pas de bloc d'activation pour comparer",
+    659: '${host} : suit une autre chaîne',
+    660: '${host} : a répondu sans estimations de frais',
+    661: '${host} : suit cette chaîne',
+    662: '${host} (suit cette chaîne, sommet ${tip}) dit : prochain bloc ${fastest}, dans environ une demi-heure ${halfHour}, dans environ une heure ${hour}, économique ${economy} sat par vbyte.',
+    663: "Aucun explorateur public suivant cette chaîne n'a répondu (${tried}).",
+    664: "ESTIMATIONS DE FRAIS PEU FIABLES : ${backend} n'a pas d'estimation pour ${targets} (il dit : ${errors}). Il tourne depuis ${uptime} et peut avoir besoin de plus de temps pour voir des transactions se confirmer. Split et Withdraw refusent ces cibles de votre nœud tant qu'il n'en a pas ; l'estimation de l'explorateur et Custom fonctionnent toujours.",
+    665: 'Estimations de frais de votre nœud, de ${backend} (sat par vbyte) : prochain bloc ou deux ${fast}, dans environ une heure ${medium}, dans environ un jour ${slow} ; il ne relaie rien en dessous de ${floor}. Il tourne depuis ${uptime}.',
+    666: "NOTE : l'estimation de votre nœud pour le prochain bloc et celle de l'explorateur diffèrent de plus de deux pour un. Un backend démarré récemment a vu peu de transactions se confirmer, et le mempool de l'explorateur n'est pas celui de votre nœud. Choisissez la source en laquelle vous avez confiance.",
+    667: "votre nœud n'avait pas d'estimation pour le prochain bloc",
+    668: 'votre nœud disait ${rate} sat par vbyte pour le prochain bloc ou deux',
+    669: '${host} disait ${rate} sat par vbyte pour le prochain bloc',
+    670: "aucun explorateur public n'a répondu",
+    671: "Refusé : aucun explorateur public suivant cette chaîne n'a répondu (${tried}). Utilisez l'estimation de votre nœud ou Custom.",
+    672: 'estimation de ${host} pour ${target} : ${rate} sat par vbyte${raised}',
+    674: 'estimation de votre nœud pour ${target} (${blocks} blocs), de ${backend} : ${estimate} sat par vbyte${raised}',
+
+    // Recovery: fee source choice (continued)
+    675: "Refusé : votre nœud n'a pas encore d'estimation de frais pour « ${target} » (${blocks} blocs). ${backend} dit : ${errors} ; il tourne depuis ${uptime}. Lancez Recovery: Status pour voir les estimations disponibles, attendez qu'il rassemble des données, ou utilisez l'estimation de l'explorateur ou Custom.",
+
+    // Recovery: short fee source labels (the dropdown cannot wrap)
+    676: 'Votre nœud',
+    677: 'Explorateur public',
+
+    // Recovery: last fee estimates shown in the Split and Withdraw dialogs
+    678: "Estimations de frais : aucune enregistrée pour l'instant. Lancez d'abord Recovery: Status ; il les lit depuis votre nœud et l'explorateur public et les affiche ici.",
+    679: 'Estimations de frais ${chain} au ${at} (lancez Recovery: Status pour actualiser) : ${text}',
+    680: 'sur la chaîne BLAKE2b',
+    681: 'sur la chaîne SHA256d',
+
+    // Recovery: Split as one signed-then-verified transaction
+    682: "Déplace tout le solde on-chain de l'instance BLAKE2b en une seule transaction valide uniquement sur la chaîne BLAKE2b, afin que les pièces des deux chaînes ne puissent plus être dépensées par une même transaction. La transaction est d'abord construite et signée, et n'est envoyée qu'une fois chaque entrée vérifiée comme portant le hash de signature propre à BLAKE2b ; sinon rien n'est envoyé. Ensuite, Withdraw peut envoyer les pièces SHA256d.",
+    683: "La construction de la transaction a échoué et rien n'a été dépensé : ${error}",
+    684: "La signature de la transaction a échoué et rien n'a été dépensé : ${error}. Si l'instance BLAKE2b s'est arrêtée, elle a refusé de signer : consultez ses journaux avant de réessayer.",
+    685: "La transaction signée n'a pas pu être vérifiée ; elle n'a donc pas été envoyée et ses entrées ont été libérées : ${error}",
+    686: 'Pièces déplacées',
+    687: 'Split arrêté avant la diffusion',
+    688: "ARRÊTÉ : la transaction signée ${txid} ne porte pas le hash de signature propre à BLAKE2b sur chaque entrée (types : ${types}). Elle serait valide aussi sur l'autre chaîne ; elle n'a donc PAS été envoyée et ses entrées ont été libérées. Rien n'a été dépensé.",
+    689: 'La diffusion de la transaction a échoué et ses entrées ont été libérées : ${error}',
+    690: "Split ${txid} diffusé : ${count} pièce(s) d'une valeur de ${amount} sat déplacées en une seule transaction, chaque entrée signée pour la chaîne BLAKE2b uniquement (vérifié avant l'envoi).",
+    691: 'Attendez la confirmation de la transaction, puis lancez Recovery: Status : Withdraw pourra alors envoyer les pièces SHA256d.',
+
+    // Recovery: split pending in the BLAKE2b mempool (P26)
+    692: 'SUITE : attendez que la transaction de split soit confirmée sur la chaîne BLAKE2b : ${count} pièce(s) ne sont dépensées par elle que dans le mempool BLAKE2b. Lancez ensuite de nouveau Recovery: Status.',
+    693: "SPLIT EN ATTENTE : ${count} pièce(s) d'une valeur de ${amount} sat ne sont dépensées sur BLAKE2b que dans le mempool, par une transaction qu'aucun bloc n'a encore prise. Withdraw les retient jusqu'à sa confirmation.",
   },
 } satisfies Record<string, LangDict>

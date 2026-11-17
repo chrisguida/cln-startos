@@ -316,9 +316,15 @@ export async function walletDrift(tools: Tools): Promise<Drift> {
   const counted = await list(false)
   const all = await list(true)
   const countedKeys = new Set(counted.map((o) => outpointKey(point(o))))
-  const unspent = await tools.unspent(all.map(point))
+  // The chain alone: an output spent by a transaction still in the mempool
+  // (the split, say) is not a disagreement, the wallet keeps it reserved.
+  const unspent = await tools.unspent(all.map(point), false)
   return {
-    phantom: counted.filter((o) => !unspent.has(outpointKey(point(o)))),
+    // An output the wallet has as unconfirmed is not in the chain's UTXO set
+    // yet by definition (the split's own output, while it waits for a block).
+    phantom: counted.filter(
+      (o) => o.status === 'confirmed' && !unspent.has(outpointKey(point(o))),
+    ),
     restorable: all.filter(
       (o) =>
         !countedKeys.has(outpointKey(point(o))) &&
@@ -335,9 +341,17 @@ export async function walletDrift(tools: Tools): Promise<Drift> {
  */
 export async function sharedCoins(blake2b: Tools, outputs: WalletOutput[]) {
   const point = (o: WalletOutput) => ({ txid: o.txid, index: o.output })
-  const unspent = await blake2b.unspent(outputs.map(point))
+  const points = outputs.map(point)
+  // Spent in a block, or spent only in the mempool so far: a mempool spend can
+  // still be evicted, so such a coin is not safe to withdraw yet (P26).
+  const inChain = await blake2b.unspent(points, false)
+  const withMempool = await blake2b.unspent(points, true)
+  const key = (o: WalletOutput) => outpointKey(point(o))
   return {
-    shared: outputs.filter((o) => unspent.has(outpointKey(point(o)))),
-    safe: outputs.filter((o) => !unspent.has(outpointKey(point(o)))),
+    shared: outputs.filter((o) => withMempool.has(key(o))),
+    pending: outputs.filter(
+      (o) => inChain.has(key(o)) && !withMempool.has(key(o)),
+    ),
+    safe: outputs.filter((o) => !inChain.has(key(o))),
   }
 }

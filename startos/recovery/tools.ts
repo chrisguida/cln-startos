@@ -80,7 +80,10 @@ export type Tools = Instance & {
    * Which of the given outputs the backend has unspent (mempool included):
    * one exec for the whole list instead of one per output.
    */
-  unspent: (outpoints: Outpoint[]) => Promise<Set<string>>
+  unspent: (
+    outpoints: Outpoint[],
+    includeMempool?: boolean,
+  ) => Promise<Set<string>>
   /** A read-only query on lightningd's database; works with lightningd stopped. */
   sqlite: <R>(sql: string) => Promise<R[]>
   /** Copies lightningd's database with SQLite's online backup API. */
@@ -246,7 +249,7 @@ export function makeTools(sub: Sub, instance: Instance): Tools {
     bitcoin: async <R>(method: string, params?: Param[], timeoutMs?: number) =>
       JSON.parse(await bitcoinText(method, params, timeoutMs)) as R,
     bitcoinText,
-    unspent: async (outpoints: Outpoint[]) => {
+    unspent: async (outpoints: Outpoint[], includeMempool = true) => {
       if (!outpoints.length) return new Set<string>()
       // A shell loop inside the subcontainer: each gettxout is a few
       // milliseconds there, where an exec per output costs far more. Any
@@ -256,7 +259,7 @@ export function makeTools(sub: Sub, instance: Instance): Tools {
         [
           'sh',
           '-c',
-          `while read t n; do o=$(${cli().join(' ')} gettxout "$t" "$n") || exit 1; [ -z "$o" ] || echo "$t:$n"; done`,
+          `while read t n; do o=$(${cli().join(' ')} gettxout "$t" "$n" ${includeMempool}) || exit 1; [ -z "$o" ] || echo "$t:$n"; done`,
         ],
         timeoutMs,
         outpoints.map((o) => `${o.txid} ${o.index}\n`).join(''),

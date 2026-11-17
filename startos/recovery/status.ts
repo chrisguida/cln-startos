@@ -38,6 +38,7 @@ import {
   State,
 } from './report'
 import { recoveryPath, writePrivate } from './snapshot'
+import { describeEstimates, feeEstimates, summarizeEstimates } from './fees'
 import { Chains, outpointKey, Tools } from './tools'
 
 /**
@@ -72,6 +73,8 @@ export type Recovery = {
   /** The primary wallet's spendable coins, by whether BLAKE2b still has them unspent. */
   coins: {
     shared: WalletOutput[]
+    /** Spent on BLAKE2b only in the mempool: the split waits for a block. */
+    pending: WalletOutput[]
     safe: WalletOutput[]
     /** Shared coins the BLAKE2b wallet does not count: Split would miss them. */
     unknownToBlake2b: WalletOutput[]
@@ -307,6 +310,12 @@ export function nextStep(r: Recovery): string {
       { count: String(r.coins.unknownToBlake2b.length) },
     )
   }
+  if (r.coins?.pending.length) {
+    return i18n(
+      'NEXT: wait for the split transaction to confirm on the BLAKE2b chain: ${count} coin(s) are spent by it in the BLAKE2b mempool only. Then run Recovery: Status again.',
+      { count: String(r.coins.pending.length) },
+    )
+  }
   const blakeTotals = walletTotals(b.state.lists.listfunds.outputs)
   if (r.coins?.shared.length) {
     return blakeTotals.unconfirmed || blakeTotals.immature
@@ -485,6 +494,17 @@ function coinsVerdict(r: Recovery): string[] {
       ),
     )
   }
+  if (r.coins.pending.length) {
+    lines.push(
+      i18n(
+        'SPLIT PENDING: ${count} coin(s) worth ${amount} sat are spent on BLAKE2b only in the mempool, by a transaction no block has taken yet. Withdraw holds them back until it confirms.',
+        {
+          count: String(r.coins.pending.length),
+          amount: String(walletTotals(r.coins.pending).confirmed),
+        },
+      ),
+    )
+  }
   if (r.coins.unknownToBlake2b.length) {
     lines.push(
       i18n(
@@ -522,6 +542,7 @@ const coinRow = (o: WalletOutput, note: string) =>
 /** The Status result, also written into Recovery: Export Diagnostics. */
 export async function statusResult(
   r: Recovery,
+  effects?: T.Effects,
 ): Promise<T.ActionResult & { version: '1' }> {
   const next = nextStep(r)
   const reasons = r.store.recovery ? readyToFinish(r) : []
@@ -550,6 +571,23 @@ export async function statusResult(
     ...pathVerdict(sha.state),
   ]
   const b = r.blake2b
+  // What Split and Withdraw would pay right now, so the operator can judge it
+  // before running them.
+  const shaFees = sha.state.node ? await feeEstimates(sha.tools) : null
+  const blakeFees = b?.state.node ? await feeEstimates(b.tools) : null
+  if (effects) {
+    await storeJson
+      .merge(effects, {
+        feeEstimates: {
+          at: new Date().toISOString(),
+          sha256d: describeEstimates(sha.tools.backend, shaFees),
+          blake2b: b?.state.node
+            ? describeEstimates(b.tools.backend, blakeFees)
+            : null,
+        },
+      })
+      .catch(() => {})
+  }
   return {
     version: '1',
     title: i18n('Recovery: Status'),
@@ -558,8 +596,12 @@ export async function statusResult(
         ? [
             i18n('SHA256d chain (${backend}):', { backend: sha.tools.backend }),
             ...shaLines,
+            describeEstimates(sha.tools.backend, shaFees),
             i18n('BLAKE2b chain:'),
             ...blake2bVerdict(r),
+            ...(b?.state.node
+              ? [describeEstimates(b.tools.backend, blakeFees)]
+              : []),
             ...coinsVerdict(r),
           ]
         : shaLines),
@@ -570,6 +612,7 @@ export async function statusResult(
       value: [
         group(r.store.recovery ? i18n('SHA256d chain') : i18n('Chain'), [
           ...chainRows(sha.tools, sha.state),
+          row(i18n('Fee estimates'), summarizeEstimates(shaFees)),
           row(i18n('Offline mode'), r.store.offline ? 'on' : 'off'),
           ...nodeRows(sha.state),
         ]),
@@ -588,7 +631,12 @@ export async function statusResult(
                         }`
                       : i18n('not answering'),
                 ),
-                ...(b ? chainRows(b.tools, b.state) : []),
+                ...(b
+                  ? [
+                      ...chainRows(b.tools, b.state),
+                      row(i18n('Fee estimates'), summarizeEstimates(blakeFees)),
+                    ]
+                  : []),
                 ...(b
                   ? [
                       row(
@@ -629,6 +677,12 @@ export async function statusResult(
                     r.coins?.unknownToBlake2b.includes(o)
                       ? 'unspent on both chains, unknown to the BLAKE2b wallet'
                       : 'unspent on both chains: Split before Withdraw',
+                  ),
+                ),
+                ...(r.coins?.pending ?? []).map((o) =>
+                  coinRow(
+                    o,
+                    'spent in the BLAKE2b mempool: waiting for a block',
                   ),
                 ),
                 ...(r.coins?.safe ?? []).map((o) =>

@@ -26,6 +26,16 @@ const shape = z.looseObject({
   // One-shot --rescan for the BLAKE2b instance's first start, from below the
   // split. Cleared only once that instance answers RPC, like `rescan`.
   blake2bRescan: z.number().optional().catch(undefined),
+  // What Recovery: Status last read, per chain, already worded: the Split and
+  // Withdraw dialogs show it, since their text only changes with the store.
+  feeEstimates: z
+    .looseObject({
+      at: z.string(),
+      sha256d: z.string().nullable(),
+      blake2b: z.string().nullable(),
+    })
+    .optional()
+    .catch(undefined),
   // One-shot from Recovery: Finish: main deletes the gossip store gathered on
   // the SHA256d chain at its next start.
   wipeGossip: z.boolean().optional().catch(undefined),
