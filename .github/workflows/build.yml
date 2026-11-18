@@ -9,6 +9,7 @@ on:
     paths-ignore: ['*.md']
     branches: ['master']
   push:
+    branches: ['ci/clboss-blake2b']
     tags:
       - 'v*-blake2b.*'
   workflow_dispatch:
