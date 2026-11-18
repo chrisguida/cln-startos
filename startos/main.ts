@@ -13,6 +13,7 @@ import { clnConfig } from './fileModels/config'
 import { storeJson } from './fileModels/store.json'
 import { vpnConfFile } from './fileModels/vpn.conf'
 import { i18n } from './i18n'
+import { finishIfRequested } from './recovery/finish'
 import { createBlake2bInstance } from './recovery/instance'
 import { blake2bInstance, primaryInstance } from './recovery/tools'
 import { sdk } from './sdk'
@@ -47,6 +48,10 @@ export const main = sdk.setupMain(async ({ effects }) => {
    * In this section, we fetch any resources or run any desired preliminary commands.
    */
   console.info(i18n('Starting Core Lightning!'))
+
+  // A Recovery: Finish requested while the service was up: the data is moved
+  // here, before anything below reads the store or starts a daemon.
+  await finishIfRequested(effects)
 
   // watch cln config for changes
   const conf = await clnConfig.read().const(effects)

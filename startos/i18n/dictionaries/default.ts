@@ -562,13 +562,11 @@ const dict = {
   'Every close is broadcast. Core Lightning restarts now with a second instance: a copy of the database run by the BLAKE2b build against the BLAKE2b chain, offline, reading that chain from height ${height}. Its health checks are "BLAKE2b Instance" and "BLAKE2b Chain"; run Recovery: Status once the latter is green.': 515,
   'Closes every open channel on the SHA256d chain. Each close is tried cooperatively first; a peer that has not answered within the unilateral timeout is force-closed. Afterwards the lists in recovery/final are refreshed, and once every close is broadcast the BLAKE2b instance is started. Run it again with nothing left to close to save close transactions an earlier run missed, or to start the BLAKE2b instance.': 516,
   'Run this action again in a few minutes: with nothing left to close it saves any close transaction this run missed and starts the BLAKE2b instance.': 517,
-  "Ends the recovery once the SHA256d chain holds nothing of this node's: moves the BLAKE2b instance's data into place, archives the SHA256d data under recovery/sha256d, deletes the database copies (every copy is a risk and no longer of any value), and sets the node to run on the BLAKE2b chain alone, online, on the bitcoind service. Stop Core Lightning first; start it afterwards.": 518,
   'Only finish once Recovery: Status says so. Afterwards the node reconnects to its peers on the BLAKE2b chain, and the SHA256d side is no longer watched.': 519,
   'Finish even though the last Recovery: Status did not find every step done, or is older than six hours. The SHA256d wallet must still be empty.': 520,
   'Keep the Database Copies': 521,
   'Leave the pre-recovery backup, the snapshots and the archived SHA256d database in place instead of deleting them. hsm_secret, emergency.recover and the saved lists are kept either way.': 522,
   'Refused: the BLAKE2b instance has not been started, so there is nothing to move into place. Run Recovery: Close All Channels first.': 523,
-  'Refused: no Recovery: Status from the last six hours. Start Core Lightning, run Recovery: Status, stop it, then finish; or turn on "Finish Although Not Ready".': 524,
   'Refused: the last Recovery: Status was not ready to finish: ${reasons}': 525,
   'Refused: the SHA256d wallet still has ${count} unspent output(s). Withdraw them first.': 526,
   'Refused: the BLAKE2b instance has no data under recovery/blake2b.': 527,
@@ -645,7 +643,6 @@ const dict = {
   'NEXT: Recovery: Snapshot, then Recovery: Withdraw to SHA256d Wallet (${count} coin(s), ${amount} sat).': 598,
   'NEXT: ${amount} sat on SHA256d are reserved and cannot be withdrawn yet. Wait until every channel is forgotten, then run Recovery: Status again.': 599,
   'NEXT: wait. Not ready to finish: ${reasons}': 600,
-  'NEXT: take a last Recovery: Snapshot, stop Core Lightning, then run Recovery: Finish.': 601,
   'The BLAKE2b instance has not been started yet: Recovery: Close All Channels starts it once every close is broadcast.': 602,
   'WRONG BACKEND: the BLAKE2b instance follows ${backend}, which is on the SHA256d chain. Point the bitcoind service at the BLAKE2b chain (Bitcoin Knots).': 603,
   'REPLAY NEEDED: ${count} closed channel(s) still have their funding output unspent on the BLAKE2b chain. Their close happened on SHA256d only.': 604,
@@ -752,6 +749,21 @@ const dict = {
   // Recovery: split pending in the BLAKE2b mempool (P26)
   'NEXT: wait for the split transaction to confirm on the BLAKE2b chain: ${count} coin(s) are spent by it in the BLAKE2b mempool only. Then run Recovery: Status again.': 692,
   'SPLIT PENDING: ${count} coin(s) worth ${amount} sat are spent on BLAKE2b only in the mempool, by a transaction no block has taken yet. Withdraw holds them back until it confirms.': 693,
+
+  // One-step Recovery: Finish
+  "Ends the recovery once the SHA256d chain holds nothing of this node's: moves the BLAKE2b instance's data into place, archives the SHA256d data under recovery/sha256d, deletes the database copies (every copy is a risk and no longer of any value), and sets the node to run on the BLAKE2b chain alone, online, on the bitcoind service. Core Lightning is restarted for it by this action; if it is stopped, start it afterwards.": 694,
+  'Refused: Core Lightning is stopped and there is no Recovery: Status from the last six hours. Start Core Lightning and run Recovery: Finish again; or turn on "Finish Although Not Ready".': 695,
+  'Refused: not ready to finish: ${reasons}': 696,
+  'Finishing the recovery': 697,
+  'Every check passed. Core Lightning is restarting now: it moves to the BLAKE2b chain before it starts again, and nothing else is needed from you. Run Recovery: Status in a few minutes; it says "Recovery is finished" once the move is done, and names the reason if it could not be done.': 698,
+  'Readiness checked': 699,
+  'Refused: Core Lightning is still shutting down. Nothing was changed; run Recovery: Finish again in a minute.': 700,
+  'Refused: a lightningd process of the previous run is still alive, so its data was not moved.': 701,
+  'The last Recovery: Finish did not happen when Core Lightning restarted. ${reason}': 702,
+  'NEXT: take a last Recovery: Snapshot, then run Recovery: Finish. It restarts Core Lightning by itself.': 703,
+
+  // One-step Recovery: Finish, check failure
+  'Refused: a check could not be run, so nothing was moved: ${error}': 704,
 } as const
 
 /**

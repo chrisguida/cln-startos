@@ -39,6 +39,16 @@ const shape = z.looseObject({
   // One-shot from Recovery: Finish: main deletes the gossip store gathered on
   // the SHA256d chain at its next start.
   wipeGossip: z.boolean().optional().catch(undefined),
+  // One-shot from Recovery: Finish run with the service up: main does the
+  // move at its next start, before any lightningd exists, and clears this.
+  finish: z
+    .looseObject({
+      force: z.boolean(),
+      keepCopies: z.boolean(),
+      at: z.string(),
+    })
+    .optional()
+    .catch(undefined),
   watchtowerServer: z.boolean().catch(false),
   watchtowerClients: z.array(z.string()).catch([]),
   watchtowerLabels: z

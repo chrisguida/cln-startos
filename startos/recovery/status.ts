@@ -1,4 +1,5 @@
 import { T } from '@start9labs/start-sdk'
+import { readFile } from 'fs/promises'
 import { storeJson } from '../fileModels/store.json'
 import { i18n } from '../i18n'
 import { sha256dHeaderBytes } from './chain'
@@ -37,7 +38,8 @@ import {
   row,
   State,
 } from './report'
-import { recoveryPath, writePrivate } from './snapshot'
+import { finishRefusedPath, refusedLine } from './finish'
+import { host, recoveryPath, writePrivate } from './snapshot'
 import { describeEstimates, feeEstimates, summarizeEstimates } from './fees'
 import { Chains, outpointKey, Tools } from './tools'
 
@@ -236,7 +238,7 @@ export function readyToFinish(r: Recovery): string[] {
   return reasons
 }
 
-/** The file Recovery: Finish reads, since it runs with the service stopped. */
+/** The file Recovery: Finish reads when the service is stopped. */
 export const finishReadyPath = `${recoveryPath}/finish-ready.json`
 
 /** The one step the operator should take now. */
@@ -357,7 +359,7 @@ export function nextStep(r: Recovery): string {
     })
   }
   return i18n(
-    'NEXT: take a last Recovery: Snapshot, stop Core Lightning, then run Recovery: Finish.',
+    'NEXT: take a last Recovery: Snapshot, then run Recovery: Finish. It restarts Core Lightning by itself.',
   )
 }
 
@@ -544,7 +546,10 @@ export async function statusResult(
   r: Recovery,
   effects?: T.Effects,
 ): Promise<T.ActionResult & { version: '1' }> {
-  const next = nextStep(r)
+  const refused = r.store.recovery
+    ? await readFile(host(finishRefusedPath), 'utf-8').catch(() => null)
+    : null
+  const next = refused ? `${refusedLine(refused)} ${nextStep(r)}` : nextStep(r)
   const reasons = r.store.recovery ? readyToFinish(r) : []
   await writePrivate(
     finishReadyPath,

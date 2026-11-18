@@ -524,13 +524,11 @@ export default {
     515: 'Todos los cierres están emitidos. Core Lightning se reinicia ahora con una segunda instancia: una copia de la base de datos ejecutada por la versión BLAKE2b contra la cadena BLAKE2b, sin conexión, leyendo esa cadena desde la altura ${height}. Sus comprobaciones de salud son «Instancia BLAKE2b» y «Cadena BLAKE2b»; ejecute Recuperación: Estado cuando la segunda esté en verde.',
     516: 'Cierra todos los canales abiertos en la cadena SHA256d. Cada cierre se intenta primero de forma cooperativa; un par que no haya respondido dentro del tiempo de espera unilateral se cierra a la fuerza. Después se actualizan las listas de recovery/final y, cuando todos los cierres están emitidos, se inicia la instancia BLAKE2b. Ejecútela de nuevo sin nada que cerrar para guardar transacciones de cierre que una ejecución anterior no guardó, o para iniciar la instancia BLAKE2b.',
     517: 'Vuelva a ejecutar esta acción dentro de unos minutos: sin nada que cerrar, guarda las transacciones de cierre que esta ejecución no guardó e inicia la instancia BLAKE2b.',
-    518: 'Termina la recuperación cuando la cadena SHA256d ya no contiene nada de este nodo: coloca en su sitio los datos de la instancia BLAKE2b, archiva los datos SHA256d en recovery/sha256d, borra las copias de la base de datos (toda copia es un riesgo y ya no tiene valor) y configura el nodo para funcionar solo en la cadena BLAKE2b, en línea, en el servicio bitcoind. Detenga Core Lightning antes; inícielo después.',
     519: 'Finalice solo cuando Recuperación: Estado lo indique. Después el nodo se reconecta a sus pares en la cadena BLAKE2b y el lado SHA256d deja de vigilarse.',
     520: 'Finalizar aunque el último Recuperación: Estado no haya encontrado todos los pasos hechos, o tenga más de seis horas. El monedero SHA256d debe estar vacío de todos modos.',
     521: 'Conservar las copias de la base de datos',
     522: 'Dejar en su sitio la copia previa a la recuperación, las instantáneas y la base de datos SHA256d archivada en lugar de borrarlas. hsm_secret, emergency.recover y las listas guardadas se conservan en cualquier caso.',
     523: 'Rechazado: la instancia BLAKE2b no se ha iniciado, así que no hay nada que colocar en su sitio. Ejecute antes Recuperación: Cerrar todos los canales.',
-    524: 'Rechazado: no hay ningún Recuperación: Estado de las últimas seis horas. Inicie Core Lightning, ejecute Recuperación: Estado, deténgalo y luego finalice; o active «Finalizar aunque no esté listo».',
     525: 'Rechazado: el último Recuperación: Estado no estaba listo para finalizar: ${reasons}',
     526: 'Rechazado: el monedero SHA256d todavía tiene ${count} salida(s) sin gastar. Retírelas antes.',
     527: 'Rechazado: la instancia BLAKE2b no tiene datos en recovery/blake2b.',
@@ -607,7 +605,6 @@ export default {
     598: 'SIGUIENTE: Recuperación: Instantánea y luego Recuperación: Retirar a un monedero SHA256d (${count} moneda(s), ${amount} sat).',
     599: 'SIGUIENTE: ${amount} sat en SHA256d están reservados y aún no se pueden retirar. Espere a que todos los canales se olviden y vuelva a ejecutar Recuperación: Estado.',
     600: 'SIGUIENTE: esperar. No está listo para finalizar: ${reasons}',
-    601: 'SIGUIENTE: tome un último Recuperación: Instantánea, detenga Core Lightning y luego ejecute Recuperación: Finalizar.',
     602: 'La instancia BLAKE2b aún no se ha iniciado: Recuperación: Cerrar todos los canales la inicia cuando todos los cierres están emitidos.',
     603: 'BACKEND INCORRECTO: la instancia BLAKE2b sigue a ${backend}, que está en la cadena SHA256d. Apunte el servicio bitcoind a la cadena BLAKE2b (Bitcoin Knots).',
     604: 'HACE FALTA REPRODUCIR: ${count} canal(es) cerrado(s) todavía tienen su salida de financiación sin gastar en la cadena BLAKE2b. Su cierre ocurrió solo en SHA256d.',
@@ -714,6 +711,21 @@ export default {
     // Recovery: split pending in the BLAKE2b mempool (P26)
     692: 'SIGUIENTE: espere a que la transacción de split se confirme en la cadena BLAKE2b: ${count} moneda(s) solo están gastadas por ella en la mempool de BLAKE2b. Luego ejecute Recovery: Status de nuevo.',
     693: 'SPLIT PENDIENTE: ${count} moneda(s) por ${amount} sat están gastadas en BLAKE2b solo en la mempool, por una transacción que ningún bloque ha tomado aún. Withdraw las retiene hasta que se confirme.',
+
+    // One-step Recovery: Finish
+    694: 'Termina la recuperación cuando la cadena SHA256d ya no contiene nada de este nodo: pone en su sitio los datos de la instancia BLAKE2b, archiva los datos SHA256d en recovery/sha256d, borra las copias de la base de datos (cada copia es un riesgo y ya no tiene valor) y deja el nodo funcionando solo en la cadena BLAKE2b, en línea, con el servicio bitcoind. Esta acción reinicia Core Lightning para ello; si está detenido, inícielo después.',
+    695: 'Rechazado: Core Lightning está detenido y no hay ningún Recuperación: Estado de las últimas seis horas. Inicie Core Lightning y ejecute Recuperación: Finalizar de nuevo; o active "Finalizar aunque no esté listo".',
+    696: 'Rechazado: no está listo para terminar: ${reasons}',
+    697: 'Terminando la recuperación',
+    698: 'Todas las comprobaciones han pasado. Core Lightning se está reiniciando ahora: pasa a la cadena BLAKE2b antes de volver a arrancar, y no tiene que hacer nada más. Ejecute Recuperación: Estado dentro de unos minutos; dice "Recovery is finished" cuando el cambio está hecho, e indica el motivo si no se pudo hacer.',
+    699: 'Disponibilidad comprobada',
+    700: 'Rechazado: Core Lightning todavía se está apagando. No se ha cambiado nada; ejecute Recuperación: Finalizar de nuevo dentro de un minuto.',
+    701: 'Rechazado: un proceso lightningd de la ejecución anterior sigue vivo, así que sus datos no se han movido.',
+    702: 'El último Recuperación: Finalizar no se realizó al reiniciarse Core Lightning. ${reason}',
+    703: 'SIGUIENTE: haga un último Recuperación: Instantánea y luego ejecute Recuperación: Finalizar. Reinicia Core Lightning por sí mismo.',
+
+    // One-step Recovery: Finish, check failure
+    704: 'Rechazado: no se pudo ejecutar una comprobación, así que no se movió nada: ${error}',
   },
   de_DE: {
     0: 'Core Lightning wird gestartet!',
@@ -1238,13 +1250,11 @@ export default {
     515: 'Jede Schließung ist gesendet. Core Lightning startet jetzt mit einer zweiten Instanz neu: einer Kopie der Datenbank, die der BLAKE2b-Build gegen die BLAKE2b-Kette betreibt, offline, und die diese Kette ab Höhe ${height} liest. Ihre Gesundheitsprüfungen heißen „BLAKE2b-Instanz“ und „BLAKE2b-Kette“; führen Sie Wiederherstellung: Status aus, sobald Letztere grün ist.',
     516: 'Schließt jeden offenen Kanal auf der SHA256d-Kette. Jede Schließung wird zuerst kooperativ versucht; ein Peer, der innerhalb der einseitigen Wartezeit nicht geantwortet hat, wird zwangsgeschlossen. Danach werden die Listen in recovery/final aufgefrischt, und sobald jede Schließung gesendet ist, wird die BLAKE2b-Instanz gestartet. Führen Sie die Aktion ohne etwas zu schließen erneut aus, um Schließungstransaktionen zu sichern, die ein früherer Lauf verpasst hat, oder um die BLAKE2b-Instanz zu starten.',
     517: 'Führen Sie diese Aktion in ein paar Minuten erneut aus: ohne etwas zu schließen sichert sie jede Schließungstransaktion, die dieser Lauf verpasst hat, und startet die BLAKE2b-Instanz.',
-    518: 'Beendet die Wiederherstellung, sobald die SHA256d-Kette nichts mehr von diesem Knoten hält: setzt die Daten der BLAKE2b-Instanz an ihren Platz, archiviert die SHA256d-Daten unter recovery/sha256d, löscht die Datenbankkopien (jede Kopie ist ein Risiko und nichts mehr wert) und stellt den Knoten darauf ein, allein auf der BLAKE2b-Kette zu laufen, online, auf dem Dienst bitcoind. Stoppen Sie Core Lightning zuerst; starten Sie es danach.',
     519: 'Schließen Sie erst ab, wenn Wiederherstellung: Status es sagt. Danach verbindet sich der Knoten wieder mit seinen Peers auf der BLAKE2b-Kette, und die SHA256d-Seite wird nicht mehr überwacht.',
     520: 'Abschließen, obwohl der letzte Wiederherstellung: Status nicht jeden Schritt erledigt fand oder älter als sechs Stunden ist. Die SHA256d-Wallet muss trotzdem leer sein.',
     521: 'Datenbankkopien behalten',
     522: 'Die Sicherung von vor der Wiederherstellung, die Snapshots und die archivierte SHA256d-Datenbank an Ort und Stelle lassen, statt sie zu löschen. hsm_secret, emergency.recover und die gespeicherten Listen bleiben in jedem Fall erhalten.',
     523: 'Abgelehnt: die BLAKE2b-Instanz wurde nicht gestartet, es gibt also nichts an seinen Platz zu setzen. Führen Sie zuerst Wiederherstellung: Alle Kanäle schließen aus.',
-    524: 'Abgelehnt: kein Wiederherstellung: Status aus den letzten sechs Stunden. Starten Sie Core Lightning, führen Sie Wiederherstellung: Status aus, stoppen Sie es und schließen Sie dann ab; oder schalten Sie „Abschließen, obwohl nicht bereit“ ein.',
     525: 'Abgelehnt: der letzte Wiederherstellung: Status war nicht bereit zum Abschließen: ${reasons}',
     526: 'Abgelehnt: die SHA256d-Wallet hat noch ${count} unausgegebene Ausgabe(n). Zahlen Sie sie zuerst aus.',
     527: 'Abgelehnt: die BLAKE2b-Instanz hat keine Daten unter recovery/blake2b.',
@@ -1321,7 +1331,6 @@ export default {
     598: 'WEITER: Wiederherstellung: Snapshot, dann Wiederherstellung: Auf SHA256d-Wallet auszahlen (${count} Coin(s), ${amount} sat).',
     599: 'WEITER: ${amount} sat auf SHA256d sind reserviert und können noch nicht ausgezahlt werden. Warten Sie, bis jeder Kanal vergessen ist, und führen Sie dann Wiederherstellung: Status erneut aus.',
     600: 'WEITER: warten. Nicht bereit zum Abschließen: ${reasons}',
-    601: 'WEITER: nehmen Sie einen letzten Wiederherstellung: Snapshot, stoppen Sie Core Lightning und führen Sie dann Wiederherstellung: Abschließen aus.',
     602: 'Die BLAKE2b-Instanz wurde noch nicht gestartet: Wiederherstellung: Alle Kanäle schließen startet sie, sobald jede Schließung gesendet ist.',
     603: 'FALSCHES BACKEND: die BLAKE2b-Instanz folgt ${backend}, das auf der SHA256d-Kette ist. Richten Sie den Dienst bitcoind auf die BLAKE2b-Kette (Bitcoin Knots).',
     604: 'WIEDERHOLUNG NÖTIG: ${count} geschlossene(r) Kanal/Kanäle haben ihre Funding-Ausgabe auf der BLAKE2b-Kette noch unausgegeben. Ihre Schließung fand nur auf SHA256d statt.',
@@ -1428,6 +1437,21 @@ export default {
     // Recovery: split pending in the BLAKE2b mempool (P26)
     692: 'WEITER: warten Sie, bis die Split-Transaktion auf der BLAKE2b-Chain bestätigt ist: ${count} Coin(s) sind von ihr nur im BLAKE2b-Mempool ausgegeben. Führen Sie dann Recovery: Status erneut aus.',
     693: 'SPLIT AUSSTEHEND: ${count} Coin(s) im Wert von ${amount} sat sind auf BLAKE2b nur im Mempool ausgegeben, durch eine Transaktion, die noch kein Block aufgenommen hat. Withdraw hält sie zurück, bis sie bestätigt ist.',
+
+    // One-step Recovery: Finish
+    694: 'Beendet die Wiederherstellung, sobald die SHA256d-Chain nichts mehr von diesem Node enthält: verschiebt die Daten der BLAKE2b-Instanz an ihren Platz, archiviert die SHA256d-Daten unter recovery/sha256d, löscht die Datenbankkopien (jede Kopie ist ein Risiko und hat keinen Wert mehr) und lässt den Node nur noch auf der BLAKE2b-Chain laufen, online, mit dem Dienst bitcoind. Diese Aktion startet Core Lightning dafür neu; ist es gestoppt, starten Sie es danach.',
+    695: 'Abgelehnt: Core Lightning ist gestoppt und es gibt kein Wiederherstellung: Status aus den letzten sechs Stunden. Starten Sie Core Lightning und führen Sie Wiederherstellung: Abschließen erneut aus; oder schalten Sie "Abschließen, obwohl nicht bereit" ein.',
+    696: 'Abgelehnt: noch nicht bereit zum Abschließen: ${reasons}',
+    697: 'Wiederherstellung wird abgeschlossen',
+    698: 'Alle Prüfungen bestanden. Core Lightning startet jetzt neu: Es wechselt auf die BLAKE2b-Chain, bevor es wieder startet, und Sie müssen nichts weiter tun. Führen Sie in einigen Minuten Wiederherstellung: Status aus; es meldet "Recovery is finished", sobald der Wechsel erfolgt ist, und nennt den Grund, falls er nicht möglich war.',
+    699: 'Bereitschaft geprüft',
+    700: 'Abgelehnt: Core Lightning fährt noch herunter. Es wurde nichts geändert; führen Sie Wiederherstellung: Abschließen in einer Minute erneut aus.',
+    701: 'Abgelehnt: Ein lightningd-Prozess des vorherigen Laufs lebt noch, daher wurden seine Daten nicht verschoben.',
+    702: 'Das letzte Wiederherstellung: Abschließen wurde beim Neustart von Core Lightning nicht ausgeführt. ${reason}',
+    703: 'NÄCHSTER SCHRITT: einen letzten Wiederherstellung: Snapshot erstellen, dann Wiederherstellung: Abschließen ausführen. Es startet Core Lightning selbst neu.',
+
+    // One-step Recovery: Finish, check failure
+    704: 'Abgelehnt: Eine Prüfung konnte nicht ausgeführt werden, daher wurde nichts verschoben: ${error}',
   },
   pl_PL: {
     0: 'Uruchamianie Core Lightning!',
@@ -1952,13 +1976,11 @@ export default {
     515: 'Wszystkie zamknięcia zostały rozgłoszone. Core Lightning uruchamia się teraz ponownie z drugą instancją: kopią bazy danych prowadzoną przez wersję BLAKE2b na łańcuchu BLAKE2b, offline, czytającą ten łańcuch od wysokości ${height}. Jej kontrole stanu to „Instancja BLAKE2b” i „Łańcuch BLAKE2b”; uruchom Odzyskiwanie: Status, gdy ta druga będzie zielona.',
     516: 'Zamyka każdy otwarty kanał na łańcuchu SHA256d. Każde zamknięcie jest najpierw próbowane kooperacyjnie; peer, który nie odpowiedział w czasie oczekiwania na zamknięcie jednostronne, jest zamykany siłowo. Potem listy w recovery/final są odświeżane, a gdy wszystkie zamknięcia zostaną rozgłoszone, uruchamiana jest instancja BLAKE2b. Uruchom ją ponownie, gdy nie ma już nic do zamknięcia, aby zapisać transakcje zamknięcia pominięte przez wcześniejsze uruchomienie lub aby uruchomić instancję BLAKE2b.',
     517: 'Uruchom tę akcję ponownie za kilka minut: gdy nie ma już nic do zamknięcia, zapisze transakcje zamknięcia pominięte w tym uruchomieniu i uruchomi instancję BLAKE2b.',
-    518: 'Kończy odzyskiwanie, gdy łańcuch SHA256d nie zawiera już niczego należącego do tego węzła: przenosi dane instancji BLAKE2b na ich miejsce, archiwizuje dane SHA256d w recovery/sha256d, usuwa kopie bazy danych (każda kopia to ryzyko i nie ma już wartości) i ustawia węzeł tak, aby działał wyłącznie na łańcuchu BLAKE2b, online, w usłudze bitcoind. Najpierw zatrzymaj Core Lightning; uruchom go po zakończeniu.',
     519: 'Zakończ dopiero wtedy, gdy Odzyskiwanie: Status tak wskaże. Potem węzeł łączy się ponownie ze swoimi peerami na łańcuchu BLAKE2b, a strona SHA256d nie jest już obserwowana.',
     520: 'Zakończ, mimo że ostatni Odzyskiwanie: Status nie uznał wszystkich kroków za wykonane lub jest starszy niż sześć godzin. Portfel SHA256d i tak musi być pusty.',
     521: 'Zachowaj kopie bazy danych',
     522: 'Pozostaw kopię sprzed odzyskiwania, migawki i zarchiwizowaną bazę danych SHA256d zamiast je usuwać. hsm_secret, emergency.recover i zapisane listy są zachowywane w każdym przypadku.',
     523: 'Odrzucono: instancja BLAKE2b nie została uruchomiona, więc nie ma nic do przeniesienia na miejsce. Najpierw uruchom Odzyskiwanie: Zamknij wszystkie kanały.',
-    524: 'Odrzucono: brak Odzyskiwanie: Status z ostatnich sześciu godzin. Uruchom Core Lightning, wykonaj Odzyskiwanie: Status, zatrzymaj go, a potem zakończ; albo włącz „Zakończ mimo braku gotowości”.',
     525: 'Odrzucono: ostatni Odzyskiwanie: Status nie był gotowy do zakończenia: ${reasons}',
     526: 'Odrzucono: portfel SHA256d ma wciąż ${count} niewydanych wyjść. Najpierw je wypłać.',
     527: 'Odrzucono: instancja BLAKE2b nie ma danych w recovery/blake2b.',
@@ -2035,7 +2057,6 @@ export default {
     598: 'DALEJ: Odzyskiwanie: Migawka, a potem Odzyskiwanie: Wypłać do portfela SHA256d (${count} monet, ${amount} sat).',
     599: 'DALEJ: ${amount} sat na SHA256d jest zarezerwowanych i nie można ich jeszcze wypłacić. Poczekaj, aż każdy kanał zostanie zapomniany, a potem uruchom ponownie Odzyskiwanie: Status.',
     600: 'DALEJ: czekaj. Nie jest gotowe do zakończenia: ${reasons}',
-    601: 'DALEJ: zrób ostatnią Odzyskiwanie: Migawka, zatrzymaj Core Lightning, a potem uruchom Odzyskiwanie: Zakończ.',
     602: 'Instancja BLAKE2b nie została jeszcze uruchomiona: Odzyskiwanie: Zamknij wszystkie kanały uruchamia ją, gdy wszystkie zamknięcia zostaną rozgłoszone.',
     603: 'ZŁY BACKEND: instancja BLAKE2b podąża za ${backend}, który jest na łańcuchu SHA256d. Skieruj usługę bitcoind na łańcuch BLAKE2b (Bitcoin Knots).',
     604: 'POTRZEBNE ODTWORZENIE: ${count} zamkniętych kanałów ma wciąż niewydane wyjście finansujące na łańcuchu BLAKE2b. Ich zamknięcie nastąpiło tylko na SHA256d.',
@@ -2142,6 +2163,21 @@ export default {
     // Recovery: split pending in the BLAKE2b mempool (P26)
     692: 'DALEJ: poczekaj, aż transakcja split potwierdzi się na łańcuchu BLAKE2b: ${count} monet(y) są przez nią wydane tylko w mempoolu BLAKE2b. Potem uruchom ponownie Recovery: Status.',
     693: 'SPLIT W TOKU: ${count} monet(y) o wartości ${amount} sat są wydane na BLAKE2b tylko w mempoolu, przez transakcję, której żaden blok jeszcze nie przyjął. Withdraw wstrzymuje je do czasu potwierdzenia.',
+
+    // One-step Recovery: Finish
+    694: 'Kończy odzyskiwanie, gdy łańcuch SHA256d nie zawiera już niczego z tego węzła: przenosi dane instancji BLAKE2b na miejsce, archiwizuje dane SHA256d w recovery/sha256d, usuwa kopie bazy danych (każda kopia to ryzyko i nie ma już wartości) i ustawia węzeł do pracy wyłącznie na łańcuchu BLAKE2b, online, z usługą bitcoind. Ta akcja sama restartuje Core Lightning; jeśli jest zatrzymany, uruchom go potem.',
+    695: 'Odmowa: Core Lightning jest zatrzymany i nie ma Odzyskiwanie: Stan z ostatnich sześciu godzin. Uruchom Core Lightning i ponownie wykonaj Odzyskiwanie: Zakończ; albo włącz "Zakończ mimo braku gotowości".',
+    696: 'Odmowa: nie można jeszcze zakończyć: ${reasons}',
+    697: 'Kończenie odzyskiwania',
+    698: 'Wszystkie sprawdzenia zakończone pomyślnie. Core Lightning właśnie się restartuje: przed ponownym uruchomieniem przechodzi na łańcuch BLAKE2b i nic więcej nie trzeba robić. Za kilka minut uruchom Odzyskiwanie: Stan; po przeniesieniu pokaże "Recovery is finished", a jeśli się nie udało, poda przyczynę.',
+    699: 'Gotowość sprawdzona',
+    700: 'Odmowa: Core Lightning jeszcze się zamyka. Nic nie zmieniono; za minutę ponownie uruchom Odzyskiwanie: Zakończ.',
+    701: 'Odmowa: proces lightningd z poprzedniego uruchomienia nadal działa, więc jego dane nie zostały przeniesione.',
+    702: 'Ostatnie Odzyskiwanie: Zakończ nie zostało wykonane przy restarcie Core Lightning. ${reason}',
+    703: 'DALEJ: wykonaj ostatni Odzyskiwanie: Migawka, a potem Odzyskiwanie: Zakończ. Sam zrestartuje Core Lightning.',
+
+    // One-step Recovery: Finish, check failure
+    704: 'Odmowa: nie udało się wykonać sprawdzenia, więc niczego nie przeniesiono: ${error}',
   },
   fr_FR: {
     0: 'Démarrage de Core Lightning !',
@@ -2666,13 +2702,11 @@ export default {
     515: 'Toutes les fermetures sont diffusées. Core Lightning redémarre maintenant avec une seconde instance : une copie de la base de données exécutée par la version BLAKE2b sur la chaîne BLAKE2b, hors ligne, qui lit cette chaîne depuis la hauteur ${height}. Ses contrôles de santé sont « Instance BLAKE2b » et « Chaîne BLAKE2b » ; lancez Récupération : État quand ce dernier est vert.',
     516: "Ferme tous les canaux ouverts sur la chaîne SHA256d. Chaque fermeture est d'abord tentée de façon coopérative ; un pair qui n'a pas répondu dans le délai unilatéral est fermé de force. Ensuite les listes de recovery/final sont rafraîchies et, une fois toutes les fermetures diffusées, l'instance BLAKE2b est démarrée. Relancez-la sans rien à fermer pour enregistrer des transactions de fermeture qu'une exécution précédente a manquées, ou pour démarrer l'instance BLAKE2b.",
     517: "Relancez cette action dans quelques minutes : sans rien à fermer, elle enregistre les transactions de fermeture manquées par cette exécution et démarre l'instance BLAKE2b.",
-    518: "Termine la récupération une fois que la chaîne SHA256d ne contient plus rien de ce nœud : met en place les données de l'instance BLAKE2b, archive les données SHA256d sous recovery/sha256d, supprime les copies de la base de données (toute copie est un risque et n'a plus de valeur) et règle le nœud pour tourner sur la chaîne BLAKE2b seule, en ligne, sur le service bitcoind. Arrêtez Core Lightning d'abord ; démarrez-le ensuite.",
     519: "Ne terminez que lorsque Récupération : État le dit. Ensuite le nœud se reconnecte à ses pairs sur la chaîne BLAKE2b, et le côté SHA256d n'est plus surveillé.",
     520: "Terminer bien que le dernier Récupération : État n'ait pas trouvé toutes les étapes faites, ou date de plus de six heures. Le portefeuille SHA256d doit quand même être vide.",
     521: 'Conserver les copies de la base de données',
     522: "Laisser en place la sauvegarde d'avant la récupération, les instantanés et la base de données SHA256d archivée au lieu de les supprimer. hsm_secret, emergency.recover et les listes enregistrées sont conservés dans tous les cas.",
     523: "Refusé : l'instance BLAKE2b n'a pas été démarrée, il n'y a donc rien à mettre en place. Lancez d'abord Récupération : Fermer tous les canaux.",
-    524: 'Refusé : aucun Récupération : État au cours des six dernières heures. Démarrez Core Lightning, lancez Récupération : État, arrêtez-le, puis terminez ; ou activez « Terminer bien que non prêt ».',
     525: "Refusé : le dernier Récupération : État n'était pas prêt à terminer : ${reasons}",
     526: "Refusé : le portefeuille SHA256d a encore ${count} sortie(s) non dépensée(s). Retirez-les d'abord.",
     527: "Refusé : l'instance BLAKE2b n'a pas de données sous recovery/blake2b.",
@@ -2749,7 +2783,6 @@ export default {
     598: 'SUITE : Récupération : Instantané, puis Récupération : Retirer vers un portefeuille SHA256d (${count} pièce(s), ${amount} sat).',
     599: 'SUITE : ${amount} sat sur SHA256d sont réservés et ne peuvent pas encore être retirés. Attendez que chaque canal soit oublié, puis relancez Récupération : État.',
     600: 'SUITE : attendre. Pas prêt à terminer : ${reasons}',
-    601: 'SUITE : prenez un dernier Récupération : Instantané, arrêtez Core Lightning, puis lancez Récupération : Terminer.',
     602: "L'instance BLAKE2b n'a pas encore été démarrée : Récupération : Fermer tous les canaux la démarre une fois toutes les fermetures diffusées.",
     603: "MAUVAIS BACKEND : l'instance BLAKE2b suit ${backend}, qui est sur la chaîne SHA256d. Pointez le service bitcoind vers la chaîne BLAKE2b (Bitcoin Knots).",
     604: 'REJEU NÉCESSAIRE : ${count} canal/canaux fermé(s) ont encore leur sortie de financement non dépensée sur la chaîne BLAKE2b. Leur fermeture a eu lieu sur SHA256d seulement.',
@@ -2856,5 +2889,20 @@ export default {
     // Recovery: split pending in the BLAKE2b mempool (P26)
     692: 'SUITE : attendez que la transaction de split soit confirmée sur la chaîne BLAKE2b : ${count} pièce(s) ne sont dépensées par elle que dans le mempool BLAKE2b. Lancez ensuite de nouveau Recovery: Status.',
     693: "SPLIT EN ATTENTE : ${count} pièce(s) d'une valeur de ${amount} sat ne sont dépensées sur BLAKE2b que dans le mempool, par une transaction qu'aucun bloc n'a encore prise. Withdraw les retient jusqu'à sa confirmation.",
+
+    // One-step Recovery: Finish
+    694: "Termine la récupération une fois que la chaîne SHA256d ne contient plus rien de ce nœud : met en place les données de l'instance BLAKE2b, archive les données SHA256d sous recovery/sha256d, supprime les copies de la base de données (chaque copie est un risque et n'a plus de valeur) et fait fonctionner le nœud sur la seule chaîne BLAKE2b, en ligne, avec le service bitcoind. Cette action redémarre Core Lightning pour cela ; s'il est arrêté, démarrez-le ensuite.",
+    695: 'Refusé : Core Lightning est arrêté et il n\'y a aucun Récupération : État des six dernières heures. Démarrez Core Lightning et relancez Récupération : Terminer ; ou activez "Terminer bien que non prêt".',
+    696: 'Refusé : pas prêt à terminer : ${reasons}',
+    697: 'Fin de la récupération en cours',
+    698: "Toutes les vérifications ont réussi. Core Lightning redémarre maintenant : il passe sur la chaîne BLAKE2b avant de démarrer à nouveau, et vous n'avez rien d'autre à faire. Lancez Récupération : État dans quelques minutes ; il indique \"Recovery is finished\" une fois le passage effectué, et donne la raison s'il n'a pas pu se faire.",
+    699: 'État vérifié',
+    700: "Refusé : Core Lightning est encore en cours d'arrêt. Rien n'a été modifié ; relancez Récupération : Terminer dans une minute.",
+    701: "Refusé : un processus lightningd de l'exécution précédente est encore vivant, ses données n'ont donc pas été déplacées.",
+    702: "Le dernier Récupération : Terminer n'a pas eu lieu au redémarrage de Core Lightning. ${reason}",
+    703: 'SUITE : faites un dernier Récupération : Instantané, puis lancez Récupération : Terminer. Il redémarre Core Lightning de lui-même.',
+
+    // One-step Recovery: Finish, check failure
+    704: "Refusé : une vérification n'a pas pu être exécutée, rien n'a donc été déplacé : ${error}",
   },
 } satisfies Record<string, LangDict>

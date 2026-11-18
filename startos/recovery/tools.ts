@@ -68,6 +68,12 @@ export type Tools = Instance & {
   ) => Promise<R>
   /** Whether lightningd answers RPC. */
   lightningUp: () => Promise<boolean>
+  /**
+   * Whether a lightningd process of this instance exists, answering RPC or
+   * not: it holds a lock on its pid file from before it opens the database
+   * until the process is gone.
+   */
+  lightningdAlive: () => Promise<boolean>
   /** bitcoin-cli against the backend, result parsed as JSON. Throws CliError. */
   bitcoin: <R>(
     method: string,
@@ -84,8 +90,14 @@ export type Tools = Instance & {
     outpoints: Outpoint[],
     includeMempool?: boolean,
   ) => Promise<Set<string>>
-  /** A read-only query on lightningd's database; works with lightningd stopped. */
-  sqlite: <R>(sql: string) => Promise<R[]>
+  /**
+   * A query on lightningd's database; works with lightningd stopped. Opened
+   * read-only unless `recover` is set. A lightningd that was killed leaves a
+   * journal behind which only a writable connection can replay, and a
+   * read-only one fails on it: pass `recover` when, and only when, no
+   * lightningd is alive.
+   */
+  sqlite: <R>(sql: string, opts?: { recover?: boolean }) => Promise<R[]>
   /** Copies lightningd's database with SQLite's online backup API. */
   sqliteBackup: (dest: string) => Promise<void>
 }
@@ -246,6 +258,28 @@ export function makeTools(sub: Sub, instance: Instance): Tools {
         () => true,
         () => false,
       ),
+    lightningdAlive: async () => {
+      // lightningd takes the lock with lockf(), a POSIX record lock, which
+      // flock(1) does not see; perl asks for the same kind. 0: we got it (and
+      // drop it on exit), 1: held, 2: no pid file.
+      const res = await sub.exec(
+        [
+          'perl',
+          '-e',
+          // fcntl() writes into its third argument, so it must be a variable.
+          'use Fcntl qw(F_SETLK F_WRLCK SEEK_SET); open(my $f, "+<", $ARGV[0]) or exit 2; my $l = pack("s s x4 q q i x4", F_WRLCK, SEEK_SET, 0, 0, 0); exit(fcntl($f, F_SETLK, $l) ? 0 : 1)',
+          `${lightningDir}/lightningd-${network}.pid`,
+        ],
+        { timeout: 20_000 },
+      )
+      if (res.exitCode === 0 || res.exitCode === 2) return false
+      if (res.exitCode === 1) return true
+      throw new CliError(
+        `pid file probe: exit ${res.exitCode} ${text(res.stderr)}`,
+        null,
+        res.timedOutAfter !== null,
+      )
+    },
     bitcoin: async <R>(method: string, params?: Param[], timeoutMs?: number) =>
       JSON.parse(await bitcoinText(method, params, timeoutMs)) as R,
     bitcoinText,
@@ -275,11 +309,11 @@ export function makeTools(sub: Sub, instance: Instance): Tools {
       }
       return new Set(res.stdout.split('\n').filter(Boolean))
     },
-    sqlite: async <R>(sql: string) => {
+    sqlite: async <R>(sql: string, opts?: { recover?: boolean }) => {
       const res = await run(
         [
           'sqlite3',
-          '-readonly',
+          ...(opts?.recover ? [] : ['-readonly']),
           '-json',
           '-cmd',
           '.timeout 10000',
