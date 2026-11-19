@@ -65,7 +65,11 @@ export const main = sdk.setupMain(async ({ effects }) => {
     throw new Error('no store.json')
   }
 
-  const lightningdArgs: string[] = ['--database-upgrade=true']
+  const lightningdArgs: string[] = [
+    '--database-upgrade=true',
+    '--developer',
+    '--dev-blake2b-activation-height=300',
+  ]
 
   const vpn =
     store.clearnetVpn && parseWireguardConfig(store.clearnetVpn.config)
@@ -295,7 +299,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
           for (const file of grpcCertFiles) {
             while (
               !(await access(
-                sdk.volumes.main.subpath(`./bitcoin/${file}`),
+                sdk.volumes.main.subpath(`./regtest/${file}`),
               ).then(
                 () => true,
                 () => false,
@@ -310,7 +314,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
               sdk.volumes.public.subpath(`./grpc/${file}`),
               (tmp) =>
                 copyFile(
-                  sdk.volumes.main.subpath(`./bitcoin/${file}`),
+                  sdk.volumes.main.subpath(`./regtest/${file}`),
                   tmp,
                   constants.COPYFILE_EXCL,
                 ),
@@ -333,7 +337,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
       exec: {
         command: ['node', '/app/apps/backend/dist/server.js'],
         env: {
-          BITCOIN_NETWORK: 'bitcoin',
+          BITCOIN_NETWORK: 'regtest',
           LIGHTNING_DATA_DIR: rootDir,
           APP_PROTOCOL: 'https',
           APP_HOST: '0.0.0.0',

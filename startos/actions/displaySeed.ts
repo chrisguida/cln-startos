@@ -25,7 +25,7 @@ export const displaySeed = sdk.Action.withoutInput(
   // metadata
   async ({ effects }) => {
     const hsmSecretContents = await FileHelper.string(
-      '/media/startos/volumes/main/bitcoin/hsm_secret',
+      '/media/startos/volumes/main/regtest/hsm_secret',
     )
       .read()
       .const(effects)
@@ -54,7 +54,7 @@ export const displaySeed = sdk.Action.withoutInput(
   // the execution function
   async ({ effects }) => {
     const hsmSecretContents = await FileHelper.string(
-      '/media/startos/volumes/main/bitcoin/hsm_secret',
+      '/media/startos/volumes/main/regtest/hsm_secret',
     )
       .read()
       .once()

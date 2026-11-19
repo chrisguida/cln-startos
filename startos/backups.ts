@@ -23,7 +23,7 @@ export const { createBackup, restoreInit } = sdk.setupBackups(
         // Snapshot the restored copy first: it is the last file that can
         // rebuild recovery stubs for the pre-backup channels (lightning-cli
         // emergencyrecover / recoverchannel), and this copy is never touched.
-        const scb = '/media/startos/volumes/main/bitcoin/emergency.recover'
+        const scb = '/media/startos/volumes/main/regtest/emergency.recover'
         await copyFile(
           scb,
           `${scb}.restored-${new Date().toISOString().slice(0, 10)}`,

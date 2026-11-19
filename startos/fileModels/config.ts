@@ -72,7 +72,7 @@ export const clbossZerobasefees = [
 
 export const shape = z.looseObject({
   // Enforced by StartOS
-  network: z.literal('bitcoin').catch('bitcoin'),
+  network: z.literal('regtest').catch('regtest'),
   'bitcoin-rpcconnect': iniString,
   'bitcoin-rpcport': iniNumber,
   'bitcoin-retry-timeout': iniNumber,
@@ -415,7 +415,7 @@ function formToFile(
     'announce-addr': raw?.['announce-addr']?.filter((a): a is string => !!a),
 
     // Enforced
-    network: 'bitcoin' as const,
+    network: 'regtest' as const,
     // bitcoin-rpcconnect / bitcoin-rpcport come from `raw` (set to bitcoind's
     // bridge address by watchHosts), preserved across config-action writes;
     // absent until bitcoind's binding resolves.

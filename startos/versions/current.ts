@@ -15,7 +15,7 @@ const removePluginsAndOldSocket = async ({
   effects: T.Effects
 }) => {
   await removeDroppedPlugins(effects)
-  await rm(sdk.volumes.main.subpath('./bitcoin/lightning-rpc'), { force: true })
+  await rm(sdk.volumes.main.subpath('./regtest/lightning-rpc'), { force: true })
 }
 
 export const current = VersionInfo.of({

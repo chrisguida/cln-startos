@@ -20,7 +20,7 @@ export const deleteGossipStore = sdk.Action.withoutInput(
 
   // the execution function
   async ({ effects }) => {
-    await fs.rm('/media/startos/volumes/main//bitcoin/gossip_store', {
+    await fs.rm('/media/startos/volumes/main/regtest/gossip_store', {
       recursive: true,
       force: true,
     })
