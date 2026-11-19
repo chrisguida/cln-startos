@@ -9,6 +9,7 @@ on:
     paths-ignore: ['*.md']
     branches: ['master']
   push:
+    branches: ['ci/clboss-on-accept-recovery']
     tags:
       - 'v*-blake2b.*'
   workflow_dispatch:
